@@ -1,0 +1,152 @@
+name: Deploy Reports to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'data/*.html'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Pages site
+        run: |
+          mkdir -p _site/reports
+          cp data/*.html _site/reports/ 2>/dev/null || true
+          cat << 'EOF' > _site/index.html
+          <!DOCTYPE html>
+          <html lang="fr">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Bobathon ESILV - Rapports Exploratoires (EDA)</title>
+            <style>
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+                background-color: #0f172a;
+                color: #f8fafc;
+                margin: 0;
+                padding: 40px 20px;
+                display: flex;
+                justify-content: center;
+              }
+              .container {
+                max-width: 800px;
+                width: 100%;
+              }
+              h1 {
+                font-size: 2rem;
+                margin-bottom: 0.5rem;
+                color: #38bdf8;
+              }
+              p.subtitle {
+                color: #94a3b8;
+                margin-top: 0;
+                margin-bottom: 2rem;
+                font-size: 1.1rem;
+              }
+              .card-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 20px;
+                margin-bottom: 30px;
+              }
+              .card {
+                background-color: #1e293b;
+                border: 1px solid #334155;
+                border-radius: 12px;
+                padding: 24px;
+                transition: transform 0.2s, border-color 0.2s;
+                text-decoration: none;
+                color: inherit;
+                display: block;
+              }
+              .card:hover {
+                transform: translateY(-4px);
+                border-color: #38bdf8;
+              }
+              .card h2 {
+                margin: 0 0 10px 0;
+                font-size: 1.25rem;
+                color: #f1f5f9;
+              }
+              .card p {
+                margin: 0;
+                color: #94a3b8;
+                font-size: 0.95rem;
+                line-height: 1.5;
+              }
+              .badge {
+                display: inline-block;
+                padding: 4px 10px;
+                border-radius: 9999px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                background-color: #0284c7;
+                color: white;
+                margin-bottom: 12px;
+              }
+              .footer {
+                margin-top: 40px;
+                text-align: center;
+                color: #64748b;
+                font-size: 0.85rem;
+                border-top: 1px solid #334155;
+                padding-top: 20px;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>Bobathon ESILV</h1>
+              <p class="subtitle">Tableau de bord des rapports interactifs d'analyse de donnees (EDA)</p>
+              
+              <div class="card-grid">
+                <a href="reports/eda_visits_train.html" class="card">
+                  <span class="badge">Donnees Train</span>
+                  <h2>Visites Train (visits_train)</h2>
+                  <p>Exploration complete de 44 590 visites et 5 576 patients. Distributions, types, correlations et valeurs manquantes.</p>
+                </a>
+                
+                <a href="reports/eda_X_test.html" class="card">
+                  <span class="badge">Donnees Test</span>
+                  <h2>Visites Test (X_test)</h2>
+                  <p>Profilage de 11 013 visites et 1 395 patients. Verification de la structure et de la coherence avant soumission.</p>
+                </a>
+              </div>
+
+              <div class="footer">
+                Projet Hackathon ML - Baptiste, Maxime, Louis | Genere automatiquement via GitHub Actions
+              </div>
+            </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
