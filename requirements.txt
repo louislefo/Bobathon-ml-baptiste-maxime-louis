@@ -1,2 +1,17 @@
+# Core platform and evaluation
 skore-cli==0.4.1
+skore
 pytest
+
+# Data manipulation and scientific computing
+numpy
+pandas
+scipy
+
+# Machine learning & pipelines
+scikit-learn
+skrub
+
+# Data exploration and visualization
+matplotlib
+seaborn
