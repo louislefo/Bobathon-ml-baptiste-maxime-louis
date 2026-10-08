@@ -91,7 +91,7 @@ C'est l'axe d'amélioration avec le plus fort impact attendu.
 - `off` corrélé à 0.87 avec `target` → la moyenne de `off` par patient est un proxy fort
 - Pour X_test : les patients sont nouveaux, donc utiliser `mean_off_patient` global train comme fallback
 
-**Status** : [ ] pending
+**Status** : [x] completed — RMSE GroupKFold = 4.8047 ± 0.0824 (gain de −35.5 % vs 03_hgbr). Rapport Hub #50648, soumission `submissions/04_hgbr_features.csv` prete.
 
 ---
 
