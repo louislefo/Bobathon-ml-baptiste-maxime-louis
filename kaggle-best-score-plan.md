@@ -120,7 +120,7 @@ comme variable catégorielle permet au modèle d'apprendre et de corriger le bia
 - Si la cardinalité de `rater_id` est haute (>50 cliniciens), `tabular_pipeline` utilisera
   `StringEncoder` au lieu de OneHot — toujours correct, pas besoin de changer manuellement
 
-**Status** : [x] completed — `src/model_05_rater.py`, RMSE GroupKFold = 4.8970 ± 0.0949 (features patient de base + `rater_id`, pas encore les features de `04_features`). Soumission `submissions/05_hgbr_rater.csv` prete, push Hub a faire.
+**Status** : [X] pending
 
 ---
 
@@ -184,7 +184,7 @@ Le stacking est souvent le dernier 1–2 % de gain sur les compétitions.
    passer les splits précomputés : `cv=cv_splits`
 3. Évaluer avec `skore.evaluate` + `splitter=cv_splits`, push `07_ensemble`, soumettre
 
-**Status** : [x] completed — `src/model_07_ensemble.py`, RMSE GroupKFold = 4.8853 ± 0.0940 (poids meta-modele : hgbr 0.91, ridge 0.10). `cv=cv_splits` remplace par un splitter `PatientGroupKFold` (splits precalcules invalides en CV imbriquee). Soumission `submissions/07_ensemble.csv` prete, push Hub a faire.
+**Status** : [X] pending
 
 ---
 
