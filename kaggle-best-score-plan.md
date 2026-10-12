@@ -225,6 +225,56 @@ Une analyse approfondie des 7 fichiers de soumission a été effectuée :
 
 ---
 
+## Analyse des diagnostics Skore Hub (Rapport #64154 — `06_hgbr_tuned`)
+
+L'inspection détaillée des vérifications automatiques Skore (`report.checks.summarize()`) sur le meilleur modèle (MAE: 3.63, RMSE: 4.78) révèle 2 alertes majeures et 1 recommandation clé :
+
+1. **[SKD001] Potential Overfitting (Alerte rouge)** :
+   - Un écart significatif train/validation est détecté sur 3 métriques prédictives sur 4.
+   - Cause : `max_iter=500` avec `lr=0.03` et `min_samples_leaf=10` commence à sur-apprendre le bruit des données d'entraînement.
+   - Solution : Introduire un arrêt précoce (`early_stopping`), augmenter `min_samples_leaf` ou renforcer la régularisation `l2_regularization`.
+2. **[SKD008] Variables hautement corrélées (Alerte rouge)** :
+   - `visit_number` vs `time_since_first_visit` (Spearman = 0.965).
+   - `age` vs `age_at_diagnosis` (Spearman = 0.937).
+   - Ces quasi-doublons alourdissent les arbres sans apporter de nouveau signal clinique.
+3. **[SKD012] Variables inutiles à élaguer (Recommandation clé)** :
+   - Les variables `['age', 'cohort', 'gene', 'ledd', 'sexM', 'time_since_intake_off']` ont une importance par permutation dont l'intervalle de confiance englobe zéro.
+   - Leur suppression permet de réduire la variance du modèle, d'éliminer le surapprentissage et d'améliorer la généralisation sur le test set.
+4. **Anomalie MAPE constatée sur le dashboard** :
+   - Dans le tableau Skore Hub, le MAPE affiche des valeurs astronomiques (~2.76e+13). C'est normal : plusieurs cibles `target == 0.0` provoquent des divisions par zéro dans le calcul du MAPE. Seuls le **RMSE** (métrique officielle Kaggle) et le **MAE** sont fiables.
+
+---
+
+## Analyse Kaggle CLI & Leaderboard
+
+L'interrogation de l'API Kaggle via la CLI révèle l'état exact du classement :
+
+### Soumissions actuelles de l'équipe (`bobathon-esilv`) :
+| Fichier | Date de soumission | Score Public Leaderboard (RMSE) |
+|---|---|---|
+| `01_dummy.csv` | 07 Octobre | 16.421 |
+| `03_hgbr.csv` | 07 Octobre | 7.190 |
+| `04_hgbr_features.csv` | 07 Octobre | **4.625** |
+| `06_hgbr_tuned.csv` | *Non soumise* | *Prête à soumettre (estimée ~4.55 sur public LB)* |
+
+### Leaderboard Kaggle (Top équipes) :
+1. **Legendaries** : `2.196`
+2. **Totally Bob's** : `2.212`
+3. **Jewbuzz** : `2.518`
+4. **Sleep team** : `2.684`
+...
+23. **Notre équipe (Bobra l'exploratrice)** : `4.625`
+
+### Comment combler l'écart vers le top (< 3.0) ?
+D'après `CONTEXT.md` et l'analyse des données :
+1. **Modélisation à deux régimes (OFF présent vs OFF absent)** :
+   - Quand `off` est renseigné : `target ≈ off - bias(rater_id)`. Le biais par clinicien va de +2.5 à +10.5 points. Un modèle direct de correction de biais atteint un RMSE local < 2.0 sur ce sous-groupe.
+   - Quand `off` est manquant : le modèle doit reconstruire l'état moteur à partir de `on` + l'effet dopaminergique attendu `(off - on)`.
+2. **Nettoyage des variables parasites (SKD012)** : Ne conserver que le signal moteur pur et les identifiants cliniciens.
+3. **Multi-seed ensemble** : Lisser la variance des arbres.
+
+---
+
 ## Nouvelles pistes d'amélioration pour franchir un palier
 
 ### Sous-tâche 6 — Multi-Seed Blending (08_hgbr_blend)
@@ -246,7 +296,20 @@ Une analyse approfondie des 7 fichiers de soumission a été effectuée :
 
 ---
 
-### Sous-tâche 7 — Séquençage Temporel & Features de Transition (Lags et Diffs)
+### Sous-tâche 7 — Élagage des variables bruitées & Anti-Overfitting (SKD012 + SKD001)
+
+**Intent** : Supprimer les colonnes inutiles identifiées par Skore (`['age', 'cohort', 'gene', 'ledd', 'sexM', 'time_since_intake_off']`) et la variable doublon `time_since_first_visit`, tout en augmentant légèrement `min_samples_leaf` (ex: 20 au lieu de 10) et `l2_regularization` (2.0) pour stopper le surapprentissage.
+
+**Todo List** :
+1. Modifier `prepare_features()` pour exclure les colonnes parasites
+2. Ré-entraîner HGBR et mesurer le gain en GroupKFold
+3. Vérifier que l'alerte SKD001 disparaît dans le rapport Skore
+
+**Status** : [ ] pending
+
+---
+
+### Sous-tâche 8 — Séquençage Temporel & Features de Transition (Lags et Diffs)
 
 **Intent** : Dans `X_test`, chaque patient possède entre 4 et 12 visites (médiane = 7). Puisque toutes les visites de chaque patient sont disponibles, on peut ordonner les visites par `age` et calculer des transitions directes visite à visite :
 1. `off_prev` : valeur de `off` à la visite précédente du patient (capturant la dynamique immédiate)
@@ -263,7 +326,7 @@ Une analyse approfondie des 7 fichiers de soumission a été effectuée :
 
 ---
 
-### Sous-tâche 8 — Stacking Optimisé avec HGBR Tuné (09_ensemble_tuned)
+### Sous-tâche 9 — Stacking Optimisé avec HGBR Tuné (09_ensemble_tuned)
 
 **Intent** : `07_ensemble.py` a obtenu 4.8003 car il utilisait un HGBR basique non optimisé. En ré-entraînant le Stacking avec le HGBR tuné (`max_iter=500, lr=0.03, l2=1.0`) et un Ridge calibré avec clipping strict, le méta-modèle devrait combiner l'amplitude de Ridge avec la finesse du HGBR et passer sous la barre des `4.73`.
 
