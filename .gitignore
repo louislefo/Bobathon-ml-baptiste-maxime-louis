@@ -29,3 +29,8 @@ skills/
 
 # local git worktrees
 .worktrees/
+
+# Docusaurus build caches
+website/node_modules/
+website/.docusaurus/
+website/build/
