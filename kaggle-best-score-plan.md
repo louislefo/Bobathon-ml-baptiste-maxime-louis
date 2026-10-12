@@ -18,16 +18,17 @@ avec `GroupKFold(n_splits=5)` sur `patient_id`. Chaque soumission Kaggle nécess
 
 ---
 
-## Ordre d'exécution et impact attendu
+## Résultats mesurés et benchmarks (actualisés)
 
-| # | Script | RMSE attendu vs dummy | Priorité |
-|---|---|---|---|
-| 1 | `02_ridge` (existant) | −30 % | Obligatoire |
-| 2 | `03_hgbr` (existant) | −50 % | Obligatoire |
-| 3 | `04_hgbr_features` (features temporelles) | −60 % | Forte |
-| 4 | `05_hgbr_rater` (biais clinicien) | −62 % | Moyenne |
-| 5 | `06_hgbr_tuned` (hyperparamètres optimisés) | −65 % | Moyenne |
-| 6 | `07_ensemble` (stacking Ridge + HGBR) | −67 % | Optionnel |
+| # | Modèle / Script | Validation | RMSE mesuré | Gain vs Dummy | Rapport Skore Hub | Statut |
+|---|---|---|---|---|---|---|
+| 0 | `01_dummy` (Baseline) | Standard holdout | 16.4779 | Réf. | [#64092](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/estimators/64092) | Validé |
+| 1 | `02_ridge` (Régression linéaire) | Standard holdout | 10.4877 | −36.4 % | [#64093](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/estimators/64093) | Validé |
+| 2 | `03_hgbr` (Arbre gradient boosting) | GroupKFold (5 plis) | ~7.45 | −54.8 % | [#64096](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64096) | Validé |
+| 3 | `04_hgbr_features` (Features patient & temporelles) | GroupKFold (5 plis) | 4.805 | −70.8 % | [#64117](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64117) | Validé |
+| 4 | `05_hgbr_rater` (Correction clinicien) | GroupKFold (5 plis) | 4.8106 ± 0.094 | −70.8 % | [#64136](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64136) | Validé |
+| 5 | `06_hgbr_tuned` (Hyperparamètres optimaux) | GroupKFold (5 plis) | **4.7760 ± 0.106** | **−71.0 %** | [#64154](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64154) | **Meilleur individuel** |
+| 6 | `07_ensemble` (Stacking Ridge + HGBR de base) | GroupKFold (5 plis) | 4.8003 ± 0.103 | −70.9 % | [#64167](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64167) | Validé |
 
 ---
 
@@ -53,7 +54,7 @@ avec `GroupKFold(n_splits=5)` sur `patient_id`. Chaque soumission Kaggle nécess
 - `src/model_hgbr.py` : HGBR + `tabular_pipeline` + GroupKFold + `time_since_diagnosis`
 - `parkinson/hub.py` : `load_skore_credentials()` à appeler avant `login(mode="hub")`
 
-**Status** : [ ] pending
+**Status** : [x] completed — `02_ridge.csv` (RMSE 10.4877, Hub #64093) et `03_hgbr.csv` (GroupKFold, Hub #64096) générés et publiés avec succès.
 
 ---
 
@@ -120,7 +121,7 @@ comme variable catégorielle permet au modèle d'apprendre et de corriger le bia
 - Si la cardinalité de `rater_id` est haute (>50 cliniciens), `tabular_pipeline` utilisera
   `StringEncoder` au lieu de OneHot — toujours correct, pas besoin de changer manuellement
 
-**Status** : [X] pending
+**Status** : [x] completed — `src/model_05_rater.py`, RMSE GroupKFold = 4.8106 ± 0.0937. Rapport Hub [#64136](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64136), soumission `submissions/05_hgbr_rater.csv` prête. Note : 3 prédictions légèrement négatives détectées sans clipping.
 
 ---
 
@@ -160,7 +161,7 @@ de quelques dixièmes de RMSE sans changer la logique du modèle.
 - 44 590 lignes × ~15 features : HGBR reste rapide même avec max_iter=500
 - `GroupKFold` doit être passé dans `cv=` du `RandomizedSearchCV` avec `groups`
 
-**Status** : [x] completed — RMSE GroupKFold = 4.7657 ± 0.0975. Rapport Hub #63250, soumission `submissions/06_hgbr_tuned.csv` prête.
+**Status** : [x] completed — `src/model_06_tuned.py`, RMSE GroupKFold = 4.7760 ± 0.1059. Hyperparamètres gagnants : min_samples_leaf=10, max_leaf_nodes=31, max_iter=500, learning_rate=0.03, l2_regularization=1.0. Rapport Hub [#64154](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64154), soumission `submissions/06_hgbr_tuned.csv` prête.
 
 ---
 
@@ -184,50 +185,97 @@ Le stacking est souvent le dernier 1–2 % de gain sur les compétitions.
    passer les splits précomputés : `cv=cv_splits`
 3. Évaluer avec `skore.evaluate` + `splitter=cv_splits`, push `07_ensemble`, soumettre
 
-**Status** : [X] pending
+**Status** : [x] completed — `src/model_07_ensemble.py`, RMSE GroupKFold = 4.8003 ± 0.1027 (poids méta-modèle : Ridge 0.096, HGBR 0.909). Rapport Hub [#64167](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64167), soumission `submissions/07_ensemble.csv` prête. Diagnostic : Le modèle actuel a empilé le HGBR par défaut (`max_iter=150, lr=0.08`) au lieu du HGBR tuné (`max_iter=500, lr=0.03, l2=1.0`), et 8 prédictions négatives sont à borner.
 
 ---
 
-## Récapitulatif des paramètres HGBR optimaux recommandés
+## Récapitulatif des paramètres HGBR optimaux mesurés (06_hgbr_tuned)
 
-```
+```python
 HistGradientBoostingRegressor(
-    max_iter=300,
-    learning_rate=0.05,
-    max_leaf_nodes=63,
-    min_samples_leaf=20,
-    l2_regularization=0.1,
+    max_iter=500,
+    learning_rate=0.03,
+    max_leaf_nodes=31,
+    min_samples_leaf=10,
+    l2_regularization=1.0,
     random_state=0,
-    # NaN natifs — ne PAS imputer avant
 )
 ```
 
-## Features recommandées pour le meilleur modèle (sous-tâche 2+3)
+---
 
-| Feature | Source | Note |
-|---|---|---|
-| `off` | Raw | Corrélation 0.87 avec target — feature #1 |
-| `on` | Raw | Corrélation 0.67 |
-| `age` | Raw | Proxy progression |
-| `ledd` | Raw | Dose levodopa |
-| `time_since_intake_on` | Raw | Timing médicament |
-| `time_since_intake_off` | Raw | Timing médicament |
-| `age_at_diagnosis` | Raw | Caractéristique patient |
-| `sexM` | Raw | Démographie |
-| `cohort` | Raw catégoriel | Différences de protocole |
-| `gene` | Raw catégoriel | Mutation génétique |
-| `rater_id` | Raw catégoriel | Biais clinicien — **à ajouter** |
-| `time_since_diagnosis` | Dérivée (age - age_at_diagnosis) | Durée maladie |
-| `mean_off_patient` | Agrégée groupby patient_id | Niveau de base patient |
-| `mean_on_patient` | Agrégée groupby patient_id | Niveau ON moyen patient |
-| `std_off_patient` | Agrégée groupby patient_id | Variabilité intra-patient |
-| `n_visits_patient` | Agrégée groupby patient_id | Durée de suivi |
-| `visit_number` | Rang par patient_id + age | Progression temporelle |
+## Analyse des fichiers de soumission générés (`submissions/`)
+
+Une analyse approfondie des 7 fichiers de soumission a été effectuée :
+
+| Fichier | Moyenne | Écart-type | Min | Max | Valeurs < 0 | Valeurs > 132 | Diagnostic qualité |
+|---|---|---|---|---|---|---|---|
+| `01_dummy.csv` | 37.47 | 0.00 | 37.47 | 37.47 | 0 | 0 | Constante baseline |
+| `02_ridge.csv` | 37.12 | 12.55 | 3.64 | 103.26 | 0 | 0 | Linéaire, bornes respectées |
+| `03_hgbr.csv` | 36.84 | 14.69 | 2.08 | 84.79 | 0 | 0 | Arbre standard |
+| `04_hgbr_features.csv` | 36.67 | 15.79 | 0.00 | 88.76 | 0 | 0 | Clippé à [0, 132] |
+| `05_hgbr_rater.csv` | 36.67 | 15.81 | **−0.56** | 88.76 | **3** | 0 | ⚠️ Absence de clipping (3 valeurs négatives) |
+| `06_hgbr_tuned.csv` | 36.67 | 15.81 | 0.00 | 89.58 | 0 | 0 | Clippé à [0, 132], meilleure dispersion |
+| `07_ensemble.csv` | 36.66 | 15.86 | **−0.74** | 87.95 | **8** | 0 | ⚠️ Absence de clipping (8 valeurs négatives) |
+
+### Enseignements clés :
+1. **Bornage clinique obligatoire** : Le score MDS-UPDRS est théoriquement borné dans `[0, 132]`. Dans `05` et `07`, l'absence de `np.clip` produit des prédictions négatives qui dégradent artificiellement le RMSE sur le test set privé.
+2. **Sous-estimation de l'extrémité haute** : Le max observé dans le train est de `109.50` (cible), alors que le max prédit par les modèles arborescents plafonne à `89.58`. Un assemblage pondéré avec Ridge (dont le max est `103.26`) aide à mieux capturer les cas de sévérité motrice extrême.
+3. **Corrélations élevées** : Les prédictions de `04`, `05` et `06` sont corrélées à > 0.998. Le gain supplémentaire viendra de la réduction de variance (blending de graines) et de nouvelles features dynamiques séquentielles.
+
+---
+
+## Nouvelles pistes d'amélioration pour franchir un palier
+
+### Sous-tâche 6 — Multi-Seed Blending (08_hgbr_blend)
+
+**Intent** : Le gradient boosting sur 44k lignes comporte une part de variance stochastique selon la graine aléatoire. L'inférence en moyennant les prédictions de 5 à 10 graines aléatoires (`seeds = [0, 42, 123, 456, 789]`) lisse la variance d'échantillonnage sans changer l'architecture.
+
+**Résultat du test préliminaire mesuré** :
+- RMSE modèle unique (seed 0) : `4.7813`
+- RMSE blend 5 graines : **`4.7471`**
+- **Gain immédiat : −0.0343 RMSE** (équivalent à ~0.7 % d'amélioration nette sans risque)
+
+**Todo List** :
+1. Créer `src/model_08_blend.py` reprenant les hyperparamètres de `06_hgbr_tuned`
+2. Boucler sur 5 ou 10 graines et moyenner les prédictions
+3. Appliquer `np.clip(preds, 0.0, 132.0)`
+4. Évaluer, générer `submissions/08_hgbr_blend.csv`, publier sur Skore Hub
+
+**Status** : [ ] pending
+
+---
+
+### Sous-tâche 7 — Séquençage Temporel & Features de Transition (Lags et Diffs)
+
+**Intent** : Dans `X_test`, chaque patient possède entre 4 et 12 visites (médiane = 7). Puisque toutes les visites de chaque patient sont disponibles, on peut ordonner les visites par `age` et calculer des transitions directes visite à visite :
+1. `off_prev` : valeur de `off` à la visite précédente du patient (capturant la dynamique immédiate)
+2. `diff_off_prev` : `off - off_prev` (accélération ou stabilisation de l'atteinte)
+3. `time_since_prev_visit` : temps écoulé depuis la visite antérieure
+4. `on_over_off_ratio` : ratio de réponse au traitement `on / (off + 1e-4)`
+
+**Todo List** :
+1. Intégrer ces features dans `prepare_features()` en s'assurant qu'aucun leakage n'intervienne (groupby par patient, sort par age, `shift(1)`)
+2. Vérifier la gestion native des NaN pour la première visite du patient
+3. Évaluer l'impact en GroupKFold
+
+**Status** : [ ] pending
+
+---
+
+### Sous-tâche 8 — Stacking Optimisé avec HGBR Tuné (09_ensemble_tuned)
+
+**Intent** : `07_ensemble.py` a obtenu 4.8003 car il utilisait un HGBR basique non optimisé. En ré-entraînant le Stacking avec le HGBR tuné (`max_iter=500, lr=0.03, l2=1.0`) et un Ridge calibré avec clipping strict, le méta-modèle devrait combiner l'amplitude de Ridge avec la finesse du HGBR et passer sous la barre des `4.73`.
+
+**Status** : [ ] pending
+
+---
 
 ## Anti-patterns à éviter absolument
 
-1. **Imputer les NaN de `off`/`on` avant HGBR** — les NaN sont un signal clinique (OFF exam skipped), pas une erreur.
-2. **Inclure `patient_id` comme feature** — leakage total sur X_test (patients jamais vus).
-3. **Inclure `Index` comme feature** — identifiant technique sans signal.
-4. **Utiliser un holdout aléatoire pour évaluer** — surestime le score ; utiliser uniquement `GroupKFold`.
-5. **Réutiliser la même clé Hub** pour deux modèles différents — chaque soumission Kaggle doit avoir son propre URL Hub unique.
+1. **Oublier le clipping à [0, 132]** — toute prédiction hors limites dégrade inutilement le score RMSE.
+2. **Imputer les NaN de `off`/`on` avant HGBR** — les NaN sont un signal clinique (OFF exam skipped), pas une erreur.
+3. **Inclure `patient_id` comme feature** — leakage total sur X_test (patients jamais vus).
+4. **Inclure `Index` comme feature** — identifiant technique sans signal.
+5. **Utiliser un holdout aléatoire pour évaluer** — surestime le score ; utiliser uniquement `GroupKFold`.
+6. **Réutiliser la même clé Hub** pour deux modèles différents — chaque soumission Kaggle doit avoir son propre URL Hub unique.
