@@ -1,7 +1,7 @@
 """Stacking Ridge + HGBR (07_ensemble) for Bobathon ESILV.
 
 Sous-tache 5 du plan `kaggle-best-score-plan.md` :
-1. Reprend les features de 05_hgbr_rater (features patient + rater_id categoriel).
+1. Reprend les features de 04_hgbr_features / 05_hgbr_rater (features patient + rater_id categoriel).
 2. Estimateurs de base : Ridge (signal lineaire off/on) et HGBR (interactions, NaN natifs).
 3. Meta-modele : Ridge(alpha=1.0), entraine sur des predictions out-of-fold groupees par patient.
 4. Validation croisee groupee par patient (GroupKFold sur patient_id).
@@ -34,7 +34,7 @@ for path in (REPO_ROOT, REPO_ROOT / "src"):
         sys.path.insert(0, str(path))
 
 from parkinson.hub import load_skore_credentials
-from model_05_rater import prepare_features
+from model_04_features import prepare_features
 
 
 class PatientGroupKFold:
