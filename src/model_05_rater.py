@@ -46,9 +46,19 @@ def add_patient_features(df: pd.DataFrame) -> pd.DataFrame:
 
     data["visit_number"] = by_patient.cumcount() + 1
     data["n_visits_patient"] = by_patient["age"].transform("size")
-    data["mean_off_patient"] = by_patient["off"].transform("mean")
-    data["mean_on_patient"] = by_patient["on"].transform("mean")
+    data["time_since_first_visit"] = data["age"] - by_patient["age"].transform("min")
+
+    mean_off = by_patient["off"].transform("mean")
+    mean_on = by_patient["on"].transform("mean")
+    data["mean_off_patient"] = mean_off
+    data["mean_on_patient"] = mean_on
     data["std_off_patient"] = by_patient["off"].transform("std")
+    data["std_on_patient"] = by_patient["on"].transform("std")
+    data["mean_ledd_patient"] = by_patient["ledd"].transform("mean")
+
+    data["off_minus_on"] = data["off"] - data["on"]
+    data["diff_from_mean_off"] = data["off"] - mean_off
+    data["diff_from_mean_on"] = data["on"] - mean_on
 
     # Restaure l'ordre d'origine pour rester aligne avec y et l'Index de soumission
     return data.loc[df.index]
