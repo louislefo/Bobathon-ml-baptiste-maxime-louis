@@ -120,7 +120,7 @@ comme variable catégorielle permet au modèle d'apprendre et de corriger le bia
 - Si la cardinalité de `rater_id` est haute (>50 cliniciens), `tabular_pipeline` utilisera
   `StringEncoder` au lieu de OneHot — toujours correct, pas besoin de changer manuellement
 
-**Status** : [ ] pending
+**Status** : [X] pending
 
 ---
 
@@ -184,7 +184,7 @@ Le stacking est souvent le dernier 1–2 % de gain sur les compétitions.
    passer les splits précomputés : `cv=cv_splits`
 3. Évaluer avec `skore.evaluate` + `splitter=cv_splits`, push `07_ensemble`, soumettre
 
-**Status** : [ ] pending
+**Status** : [X] pending
 
 ---
 
