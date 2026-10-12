@@ -160,7 +160,7 @@ de quelques dixièmes de RMSE sans changer la logique du modèle.
 - 44 590 lignes × ~15 features : HGBR reste rapide même avec max_iter=500
 - `GroupKFold` doit être passé dans `cv=` du `RandomizedSearchCV` avec `groups`
 
-**Status** : [ ] pending
+**Status** : [x] completed — RMSE GroupKFold = 4.7657 ± 0.0975. Rapport Hub #63250, soumission `submissions/06_hgbr_tuned.csv` prête.
 
 ---
 
