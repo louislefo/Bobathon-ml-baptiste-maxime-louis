@@ -1,0 +1,343 @@
+/* Hero Banner sobre */
+.heroBanner {
+  padding: 4.5rem 0 3.5rem;
+  text-align: center;
+  background-color: var(--ifm-background-color);
+  border-bottom: 1px solid var(--ifm-border-color);
+}
+
+.brandLogos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+}
+
+.brandLogo {
+  height: 40px;
+  width: auto;
+  opacity: 0.85;
+}
+
+.heroTitle {
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin-bottom: 0.75rem;
+  color: var(--ifm-heading-color);
+}
+
+.heroSubtitle {
+  font-size: 1.15rem;
+  color: var(--ifm-font-color-base);
+  max-width: 740px;
+  margin: 0 auto 2.25rem;
+  line-height: 1.6;
+}
+
+.heroButtons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.primaryBtn {
+  background-color: #0f3b75;
+  color: #ffffff !important;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.75rem 1.6rem;
+  border-radius: 6px;
+  transition: background-color 0.15s ease;
+  text-decoration: none !important;
+  display: inline-flex;
+  align-items: center;
+}
+
+.primaryBtn:hover {
+  background-color: #0a2540;
+  color: #ffffff !important;
+}
+
+.secondaryBtn {
+  background-color: transparent;
+  color: var(--ifm-heading-color) !important;
+  border: 1px solid var(--ifm-border-color);
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.75rem 1.6rem;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  text-decoration: none !important;
+  display: inline-flex;
+  align-items: center;
+}
+
+.secondaryBtn:hover {
+  background-color: var(--ifm-background-surface-color);
+  border-color: #94a3b8;
+}
+
+/* Section generale */
+.section {
+  padding: 4rem 0;
+}
+
+.sectionAlt {
+  padding: 4rem 0;
+  background-color: var(--ifm-background-surface-color);
+  border-top: 1px solid var(--ifm-border-color);
+  border-bottom: 1px solid var(--ifm-border-color);
+}
+
+.sectionHeader {
+  margin-bottom: 2.5rem;
+}
+
+.sectionTag {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--ifm-color-primary);
+  margin-bottom: 0.35rem;
+}
+
+.sectionTitle {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--ifm-heading-color);
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.02em;
+}
+
+.sectionDesc {
+  color: var(--ifm-font-color-base);
+  font-size: 1rem;
+  line-height: 1.6;
+  max-width: 680px;
+}
+
+/* Ligne de statistiques epuree (AUCUNE BOITE FERMEE) */
+.statsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2.5rem 0;
+  border-bottom: 1px solid var(--ifm-border-color);
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.statItem {
+  flex: 1;
+  min-width: 180px;
+  text-align: left;
+}
+
+.statValue {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--ifm-heading-color);
+  letter-spacing: -0.03em;
+  margin-bottom: 0.2rem;
+}
+
+.statLabel {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ifm-heading-color);
+  margin-bottom: 0.15rem;
+}
+
+.statDetail {
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+/* Section Rapports : deux panneaux sobres sans grosses cases */
+.reportsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2.5rem;
+}
+
+.reportItem {
+  border-left: 2px solid var(--ifm-color-primary);
+  padding-left: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.reportItemTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ifm-heading-color);
+  margin-bottom: 0.5rem;
+}
+
+.reportItemDesc {
+  font-size: 0.95rem;
+  color: var(--ifm-font-color-base);
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+
+.reportLink {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ifm-color-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  text-decoration: none;
+}
+
+.reportLink:hover {
+  text-decoration: underline;
+}
+
+/* Tableau de Benchmarks sobre et net */
+.tableContainer {
+  overflow-x: auto;
+  border: 1px solid var(--ifm-border-color);
+  border-radius: 6px;
+  background-color: var(--ifm-background-color);
+}
+
+.benchTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.92rem;
+}
+
+.benchTable th {
+  background-color: var(--ifm-background-surface-color);
+  padding: 0.85rem 1.25rem;
+  font-weight: 600;
+  color: var(--ifm-heading-color);
+  border-bottom: 1px solid var(--ifm-border-color);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.benchTable td {
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--ifm-border-color);
+  color: var(--ifm-font-color-base);
+}
+
+.benchTable tr:last-child td {
+  border-bottom: none;
+}
+
+.benchTable tr:hover td {
+  background-color: var(--ifm-background-surface-color);
+}
+
+.codeKey {
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.82rem;
+  color: var(--ifm-heading-color);
+  font-weight: 600;
+}
+
+.pillNeutral {
+  font-size: 0.78rem;
+  color: #0f3b75;
+  font-weight: 600;
+}
+
+[data-theme='dark'] .pillNeutral {
+  color: #38bdf8;
+}
+
+/* Grille figures medicales sobres */
+.figuresGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2rem;
+}
+
+.figureBlock {
+  border-top: 1px solid var(--ifm-border-color);
+  padding-top: 1rem;
+}
+
+.figureImg {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--ifm-border-color);
+  background-color: var(--ifm-background-surface-color);
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.figureTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ifm-heading-color);
+  margin-bottom: 0.25rem;
+}
+
+.figureCaption {
+  font-size: 0.85rem;
+  color: var(--ifm-font-color-base);
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* Equipe sobre en ligne simple */
+.teamSection {
+  padding: 3rem 0;
+  border-top: 1px solid var(--ifm-border-color);
+}
+
+.teamList {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.teamMember {
+  text-align: center;
+}
+
+.teamMemberName {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--ifm-heading-color);
+}
+
+.teamMemberRole {
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+@media screen and (max-width: 768px) {
+  .heroTitle {
+    font-size: 2.1rem;
+  }
+  .sectionTitle {
+    font-size: 1.6rem;
+  }
+  .statsRow {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .statItem {
+    width: 100%;
+  }
+}

@@ -1,0 +1,140 @@
+/**
+ * Global CSS styles for Bobathon ESILV
+ * Palette sobre, inspiree du noir et du bleu sombre
+ */
+
+:root {
+  /* Palette Mode Clair (par defaut) */
+  --ifm-color-primary: #0f3b75;
+  --ifm-color-primary-dark: #0c2f5e;
+  --ifm-color-primary-darker: #092447;
+  --ifm-color-primary-darkest: #061830;
+  --ifm-color-primary-light: #164e96;
+  --ifm-color-primary-lighter: #1d61b8;
+  --ifm-color-primary-lightest: #2777db;
+
+  --ifm-background-color: #ffffff;
+  --ifm-background-surface-color: #f8fafc;
+  --ifm-navbar-background-color: #ffffff;
+  --ifm-footer-background-color: #f8fafc;
+
+  --ifm-heading-color: #0f172a;
+  --ifm-font-color-base: #334155;
+  --ifm-link-color: #0f3b75;
+  --ifm-link-hover-color: #092447;
+
+  --ifm-border-color: #e2e8f0;
+  --ifm-code-font-size: 92%;
+  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --docusaurus-highlighted-code-line-bg: rgba(15, 59, 117, 0.08);
+}
+
+/* Palette Mode Sombre (Bleu nuit profond & noir) */
+[data-theme='dark'] {
+  --ifm-color-primary: #38bdf8;
+  --ifm-color-primary-dark: #0284c7;
+  --ifm-color-primary-darker: #0369a1;
+  --ifm-color-primary-darkest: #075985;
+  --ifm-color-primary-light: #7dd3fc;
+  --ifm-color-primary-lighter: #bae6fd;
+  --ifm-color-primary-lightest: #e0f2fe;
+
+  --ifm-background-color: #090d16;
+  --ifm-background-surface-color: #0f172a;
+  --ifm-navbar-background-color: rgba(9, 13, 22, 0.95);
+  --ifm-footer-background-color: #060910;
+
+  --ifm-heading-color: #f8fafc;
+  --ifm-font-color-base: #94a3b8;
+  --ifm-link-color: #38bdf8;
+  --ifm-link-hover-color: #7dd3fc;
+
+  --ifm-border-color: #1e293b;
+  --docusaurus-highlighted-code-line-bg: rgba(56, 189, 248, 0.15);
+}
+
+/* Navbar sobre */
+.navbar {
+  border-bottom: 1px solid var(--ifm-border-color);
+  box-shadow: none;
+}
+
+.navbar__title {
+  font-weight: 700;
+  color: var(--ifm-heading-color);
+  letter-spacing: -0.02em;
+}
+
+.navbar__link {
+  font-weight: 500;
+  color: var(--ifm-font-color-base);
+}
+
+.navbar__link:hover,
+.navbar__link--active {
+  color: var(--ifm-color-primary);
+}
+
+/* Footer sobre */
+.footer {
+  border-top: 1px solid var(--ifm-border-color);
+  padding: 3rem 0 2rem;
+}
+
+.footer__title {
+  color: var(--ifm-heading-color);
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.footer__link-item {
+  color: var(--ifm-font-color-base);
+  font-size: 0.9rem;
+}
+
+.footer__copyright {
+  color: #64748b;
+  font-size: 0.85rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--ifm-border-color);
+}
+
+/* Typographie et Markdown */
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  color: var(--ifm-heading-color);
+  letter-spacing: -0.02em;
+}
+
+.markdown img {
+  border-radius: 6px;
+  border: 1px solid var(--ifm-border-color);
+  margin: 1.5rem 0 0.5rem;
+  max-width: 100%;
+}
+
+.markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.95rem;
+}
+
+.markdown th {
+  background-color: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-border-color);
+  padding: 0.75rem 1rem;
+  color: var(--ifm-heading-color);
+  font-weight: 600;
+}
+
+.markdown td {
+  border: 1px solid var(--ifm-border-color);
+  padding: 0.75rem 1rem;
+}
