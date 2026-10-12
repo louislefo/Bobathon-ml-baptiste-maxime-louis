@@ -1,9 +1,10 @@
 """HistGradientBoosting + correction du biais clinicien (05_hgbr_rater) for Bobathon ESILV.
 
 Sous-tache 3 du plan `kaggle-best-score-plan.md` :
-1. Reprend les features de 03_hgbr (time_since_diagnosis, cohort/gene categoriels).
-2. Reprend les features temporelles intra-patient de la sous-tache 2 (04_hgbr_features).
-3. Ajoute `rater_id` comme variable categorielle pour apprendre le biais fixe par clinicien.
+1. Reutilise `prepare_features` de 04_hgbr_features (features temporelles intra-patient).
+2. `rater_id` y est conserve comme variable categorielle (biais fixe par clinicien) :
+   gain mesure de ~0.17 RMSE en GroupKFold (4.97 sans -> 4.80 avec).
+3. Aligne les categories de `rater_id` entre train et test.
 4. Validation croisee groupee par patient (GroupKFold sur patient_id).
 5. Generation de submissions/05_hgbr_rater.csv et reporting Skore Hub.
 
@@ -28,47 +29,13 @@ DATA_DIR = REPO_ROOT / "data"
 SUBMISSIONS_DIR = REPO_ROOT / "submissions"
 HUB_KEY = "05_hgbr_rater"
 
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+for path in (REPO_ROOT, REPO_ROOT / "src"):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 
 from parkinson.hub import load_skore_credentials
-
-
-def add_patient_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Ajoute les features de contexte patient (sous-tache 2).
-
-    Calculees uniquement a partir des variables explicatives (jamais de `target`),
-    donc sans fuite : le meme calcul s'applique a X_test, dont les patients sont
-    nouveaux mais dont toutes les visites sont disponibles.
-    """
-    data = df.sort_values(["patient_id", "age"]).copy()
-    by_patient = data.groupby("patient_id")
-
-    data["visit_number"] = by_patient.cumcount() + 1
-    data["n_visits_patient"] = by_patient["age"].transform("size")
-    data["mean_off_patient"] = by_patient["off"].transform("mean")
-    data["mean_on_patient"] = by_patient["on"].transform("mean")
-    data["std_off_patient"] = by_patient["off"].transform("std")
-
-    # Restaure l'ordre d'origine pour rester aligne avec y et l'Index de soumission
-    return data.loc[df.index]
-
-
-def prepare_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Prepare les variables explicatives, y compris le biais clinicien `rater_id`."""
-    data = add_patient_features(df)
-
-    # Duree depuis le diagnostic clinique
-    data["time_since_diagnosis"] = data["age"] - data["age_at_diagnosis"]
-
-    # Variables categorielles : rater_id est conserve (biais clinicien), pas supprime
-    for col in ["cohort", "gene", "rater_id"]:
-        if col in data.columns:
-            data[col] = data[col].astype("category")
-
-    # Colonnes a exclure de l'apprentissage (identifiants ou cible)
-    drop_cols = [c for c in ["Index", "patient_id", "target"] if c in data.columns]
-    return data.drop(columns=drop_cols)
+# Features de la sous-tache 2 (Maxime) : contexte patient + rater_id categoriel
+from model_04_features import prepare_features
 
 
 def main() -> None:
