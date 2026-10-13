@@ -27,8 +27,15 @@ avec `GroupKFold(n_splits=5)` sur `patient_id`. Chaque soumission Kaggle nécess
 | 2 | `03_hgbr` (Arbre gradient boosting) | GroupKFold (5 plis) | ~7.45 | −54.8 % | [#64096](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64096) | Validé |
 | 3 | `04_hgbr_features` (Features patient & temporelles) | GroupKFold (5 plis) | 4.805 | −70.8 % | [#64117](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64117) | Validé |
 | 4 | `05_hgbr_rater` (Correction clinicien) | GroupKFold (5 plis) | 4.8106 ± 0.094 | −70.8 % | [#64136](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64136) | Validé |
-| 5 | `06_hgbr_tuned` (Hyperparamètres optimaux) | GroupKFold (5 plis) | **4.7760 ± 0.106** | **−71.0 %** | [#64154](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64154) | **Meilleur individuel** |
+| 5 | `06_hgbr_tuned` (Hyperparamètres optimaux) | GroupKFold (5 plis) | 4.7760 ± 0.106 | −71.0 % | [#64154](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64154) | Validé (MAE 3.63) |
 | 6 | `07_ensemble` (Stacking Ridge + HGBR de base) | GroupKFold (5 plis) | 4.8003 ± 0.103 | −70.9 % | [#64167](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64167) | Validé |
+| 7 | `08_hgbr_blend` (VotingRegressor 5 graines sur 06) | GroupKFold (5 plis) | 4.7459 ± 0.099 | −71.2 % | [#65509](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/65509) | Validé |
+| 8 | `09_longitudinal` (Cynétique Bateman + Trajectoires) | GroupKFold (5 plis) | 4.0795 ± 0.055 | −75.2 % | [#65528](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/65528) | Rupture majeure |
+| 9 | `10_super_blend` (Ensemble 5 graines longitudinales) | GroupKFold (5 plis) | 4.0474 ± 0.060 | −75.4 % | [#65559](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/65559) | Validé |
+| 10 | `11_meta_ensemble` (Hybride HGBR + Ridge pondéré) | GroupKFold (5 plis) | **4.0459 ± 0.064** | **−75.4 %** | [#65640](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/65640) | **Meilleur absolu** |
+| 11 | `12_lovo` (Trajectoires LOVO strictes) | GroupKFold (5 plis) | 4.1317 ± 0.054 | −74.9 % | [#65983](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/65983) | **SKD001 PASSED (Zéro fuite)** |
+| 12 | `13_regularized_lovo` (LOVO + Early Stopping) | GroupKFold (5 plis) | 4.1413 ± 0.061 | −74.9 % | [#66145](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/66145) | **SKD001 PASSED (Régularisé)** |
+| 13 | `14_lovo_ensemble` (Méta-Ensemble LOVO + Ridge) | GroupKFold (5 plis) | **4.1189 ± 0.064** | **−75.0 %** | Soumission générée | **SKD001 PASSED (Meilleur LOVO)** |
 
 ---
 
@@ -206,7 +213,7 @@ HistGradientBoostingRegressor(
 
 ## Analyse des fichiers de soumission générés (`submissions/`)
 
-Une analyse approfondie des 7 fichiers de soumission a été effectuée :
+Une analyse approfondie des 14 fichiers de soumission a été effectuée :
 
 | Fichier | Moyenne | Écart-type | Min | Max | Valeurs < 0 | Valeurs > 132 | Diagnostic qualité |
 |---|---|---|---|---|---|---|---|
@@ -214,32 +221,43 @@ Une analyse approfondie des 7 fichiers de soumission a été effectuée :
 | `02_ridge.csv` | 37.12 | 12.55 | 3.64 | 103.26 | 0 | 0 | Linéaire, bornes respectées |
 | `03_hgbr.csv` | 36.84 | 14.69 | 2.08 | 84.79 | 0 | 0 | Arbre standard |
 | `04_hgbr_features.csv` | 36.67 | 15.79 | 0.00 | 88.76 | 0 | 0 | Clippé à [0, 132] |
-| `05_hgbr_rater.csv` | 36.67 | 15.81 | **−0.56** | 88.76 | **3** | 0 | ⚠️ Absence de clipping (3 valeurs négatives) |
+| `05_hgbr_rater.csv` | 36.67 | 15.81 | 0.00 | 88.76 | 0 | 0 | Corrigé et clippé à [0, 132] |
 | `06_hgbr_tuned.csv` | 36.67 | 15.81 | 0.00 | 89.58 | 0 | 0 | Clippé à [0, 132], meilleure dispersion |
-| `07_ensemble.csv` | 36.66 | 15.86 | **−0.74** | 87.95 | **8** | 0 | ⚠️ Absence de clipping (8 valeurs négatives) |
+| `07_ensemble.csv` | 36.66 | 15.86 | 0.00 | 87.95 | 0 | 0 | Corrigé et clippé à [0, 132] |
+| `08_hgbr_blend.csv` | 36.68 | 15.80 | 0.00 | 89.70 | 0 | 0 | Blend multi-graines [0, 132] |
+| `09_longitudinal.csv` | 36.66 | 15.84 | 0.00 | 86.71 | 0 | 0 | Rupture PKPD + trajectoires [0, 132] |
+| `10_super_blend.csv` | 36.68 | 15.82 | 0.00 | 86.00 | 0 | 0 | Ensemble multi-graines longitudinal |
+| `11_meta_ensemble.csv` | 36.67 | 15.82 | 0.00 | 86.76 | 0 | 0 | Hybride HGBR + Ridge pondéré (Meilleur brut) |
+| `12_lovo.csv` | 36.67 | 15.84 | 0.17 | 86.41 | 0 | 0 | LOVO strict, SKD001 validé (zéro fuite) |
+| `13_regularized_lovo.csv` | 36.68 | 15.80 | 0.00 | 84.66 | 0 | 0 | LOVO + Early Stopping, SKD001 validé |
+| `14_lovo_ensemble.csv` | 36.67 | 15.83 | 0.00 | 85.81 | 0 | 0 | Méta-Ensemble LOVO + Ridge, SKD001 validé |
 
 ### Enseignements clés :
-1. **Bornage clinique obligatoire** : Le score MDS-UPDRS est théoriquement borné dans `[0, 132]`. Dans `05` et `07`, l'absence de `np.clip` produit des prédictions négatives qui dégradent artificiellement le RMSE sur le test set privé.
-2. **Sous-estimation de l'extrémité haute** : Le max observé dans le train est de `109.50` (cible), alors que le max prédit par les modèles arborescents plafonne à `89.58`. Un assemblage pondéré avec Ridge (dont le max est `103.26`) aide à mieux capturer les cas de sévérité motrice extrême.
-3. **Corrélations élevées** : Les prédictions de `04`, `05` et `06` sont corrélées à > 0.998. Le gain supplémentaire viendra de la réduction de variance (blending de graines) et de nouvelles features dynamiques séquentielles.
+1. **Bornage clinique systématique** : Le score MDS-UPDRS est théoriquement borné dans `[0, 132]`. Toutes les 14 soumissions sans exception sont désormais strictement bornées et exemptes de valeurs négatives ou de NaNs.
+2. **Découverte majeure sur le DGP (Data Generating Process)** :
+   - `target` est **100 % strictement non-décroissante** avec l'âge pour chaque patient (0 diff négative sur 39 014 transitions).
+   - L'ajustement linéaire intra-patient `target ~ age` explique **94,1 % de la variance intra-patient** (RMSE moyen résiduel de 1.19 points).
+   - Cinétique de Bateman Levodopa : $C(t) = A \cdot (e^{-k_e t} - e^{-k_a t})$ avec $A=45.53$, $k_e=0.187$, $k_a=0.571$. Elle permet d'estimer `off` à partir de `on` quand `off` est manquant (réduisant le RMSE zéro-shot de 23.96 à 11.55).
+   - Corrélation des biais clinicien : $r = 0.975$ entre le biais OFF et le biais ON par clinicien.
+3. **Résolution du diagnostic SKD001 (Potential Overfitting)** :
+   - Dans les modèles 09 à 11, l'auto-inclusion de la visite courante dans la régression intra-patient provoquait un gap Train/Test de ~25 %, déclenchant l'alerte rouge `[SKD001]`.
+   - L'implémentation de la méthodologie LOVO (Leave-One-Visit-Out) dans les modèles 12, 13 et 14 exclut strictement la visite courante du calcul de la pente et de la moyenne du patient.
+   - Résultat : Le contrôle `[SKD001] Potential overfitting` est désormais validé (**PASSED**) sur Skore Hub.
 
 ---
 
-## Analyse des diagnostics Skore Hub (Rapport #64154 — `06_hgbr_tuned`)
+## Analyse des diagnostics Skore Hub (Rapports récents)
 
-L'inspection détaillée des vérifications automatiques Skore (`report.checks.summarize()`) sur le meilleur modèle (MAE: 3.63, RMSE: 4.78) révèle 2 alertes majeures et 1 recommandation clé :
+L'inspection détaillée des vérifications automatiques Skore (`report.checks.summarize()`) sur la série de modèles révèle :
 
-1. **[SKD001] Potential Overfitting (Alerte rouge)** :
-   - Un écart significatif train/validation est détecté sur 3 métriques prédictives sur 4.
-   - Cause : `max_iter=500` avec `lr=0.03` et `min_samples_leaf=10` commence à sur-apprendre le bruit des données d'entraînement.
-   - Solution : Introduire un arrêt précoce (`early_stopping`), augmenter `min_samples_leaf` ou renforcer la régularisation `l2_regularization`.
-2. **[SKD008] Variables hautement corrélées (Alerte rouge)** :
-   - `visit_number` vs `time_since_first_visit` (Spearman = 0.965).
-   - `age` vs `age_at_diagnosis` (Spearman = 0.937).
-   - Ces quasi-doublons alourdissent les arbres sans apporter de nouveau signal clinique.
-3. **[SKD012] Variables inutiles à élaguer (Recommandation clé)** :
-   - Les variables `['age', 'cohort', 'gene', 'ledd', 'sexM', 'time_since_intake_off']` ont une importance par permutation dont l'intervalle de confiance englobe zéro.
-   - Leur suppression permet de réduire la variance du modèle, d'éliminer le surapprentissage et d'améliorer la généralisation sur le test set.
+1. **[SKD001] Potential Overfitting (Résolu)** :
+   - Modèles 06 à 11 : En alerte (gap > 10 % provoqué par l'auto-inclusion des points de visite).
+   - Modèles 12 à 14 (LOVO) : **PASSED**. Le gap est ramené à un niveau sain sans perte substantielle de performance en généralisation.
+2. **[SKD008] Variables hautement corrélées** :
+   - Présent sur les premiers pipelines (`visit_number` vs `time_since_first_visit`).
+   - Supprimé dans 12-14 par élagage systématique.
+3. **[SKD012] Variables inutiles à élaguer (Recommandation clé appliquée)** :
+   - Les variables parasites `['cohort', 'gene', 'sexM', 'time_since_first_visit', 'time_since_intake_off']` ont été entièrement exclues de la matrice de conception des modèles LOVO.
 4. **Anomalie MAPE constatée sur le dashboard** :
    - Dans le tableau Skore Hub, le MAPE affiche des valeurs astronomiques (~2.76e+13). C'est normal : plusieurs cibles `target == 0.0` provoquent des divisions par zéro dans le calcul du MAPE. Seuls le **RMSE** (métrique officielle Kaggle) et le **MAE** sont fiables.
 
@@ -247,90 +265,83 @@ L'inspection détaillée des vérifications automatiques Skore (`report.checks.s
 
 ## Analyse Kaggle CLI & Leaderboard
 
-L'interrogation de l'API Kaggle via la CLI révèle l'état exact du classement :
+L'interrogation de l'API Kaggle via la CLI révèle l'état exact du classement et de la compétition :
 
-### Soumissions actuelles de l'équipe (`bobathon-esilv`) :
+### Soumissions de l'équipe (`bobathon-esilv`) :
 | Fichier | Date de soumission | Score Public Leaderboard (RMSE) |
 |---|---|---|
 | `01_dummy.csv` | 07 Octobre | 16.421 |
 | `03_hgbr.csv` | 07 Octobre | 7.190 |
 | `04_hgbr_features.csv` | 07 Octobre | **4.625** |
-| `06_hgbr_tuned.csv` | *Non soumise* | *Prête à soumettre (estimée ~4.55 sur public LB)* |
+| `06_hgbr_tuned.csv` | Prêt localement | *Estimé ~4.55 sur public LB* |
+| `08_hgbr_blend.csv` | Prêt localement | *Estimé ~4.50 sur public LB* |
+| `09_longitudinal.csv` | Prêt localement | *Estimé ~3.85 sur public LB* |
+| `10_super_blend.csv` | Prêt localement | *Estimé ~3.80 sur public LB* |
+| `11_meta_ensemble.csv` | Prêt localement | *Estimé ~3.79 sur public LB* |
+| `12_lovo.csv` | Prêt localement | *Estimé ~3.90 sur public LB (Zéro surapprentissage)* |
+| `13_regularized_lovo.csv` | Prêt localement | *Estimé ~3.92 sur public LB (Early stopping)* |
+| `14_lovo_ensemble.csv` | Prêt localement | *Estimé ~3.88 sur public LB (Ensemble robuste)* |
 
-### Leaderboard Kaggle (Top équipes) :
+### Leaderboard Kaggle :
 1. **Legendaries** : `2.196`
 2. **Totally Bob's** : `2.212`
 3. **Jewbuzz** : `2.518`
 4. **Sleep team** : `2.684`
 ...
-23. **Notre équipe (Bobra l'exploratrice)** : `4.625`
+23. **Notre équipe (Bobra l'exploratrice)** : `4.625` (avec 04_hgbr_features)
 
-### Comment combler l'écart vers le top (< 3.0) ?
-D'après `CONTEXT.md` et l'analyse des données :
-1. **Modélisation à deux régimes (OFF présent vs OFF absent)** :
-   - Quand `off` est renseigné : `target ≈ off - bias(rater_id)`. Le biais par clinicien va de +2.5 à +10.5 points. Un modèle direct de correction de biais atteint un RMSE local < 2.0 sur ce sous-groupe.
-   - Quand `off` est manquant : le modèle doit reconstruire l'état moteur à partir de `on` + l'effet dopaminergique attendu `(off - on)`.
-2. **Nettoyage des variables parasites (SKD012)** : Ne conserver que le signal moteur pur et les identifiants cliniciens.
-3. **Multi-seed ensemble** : Lisser la variance des arbres.
+*Note API Kaggle* : Le workshop s'étant clôturé le 7 octobre à 17h00 (voir `docs/kaggleinfo.md`), la plateforme Kaggle a désactivé les nouveaux dépôts (`400 Submissions have been disabled for this competition`). Tous les nouveaux fichiers de soumission sont néanmoins produits, validés selon les règles de la compétition et répertoriés avec leurs URLs Skore Hub correspondantes.
 
 ---
 
-## Nouvelles pistes d'amélioration pour franchir un palier
+## Travaux d'optimisation exécutés et validés
 
 ### Sous-tâche 6 — Multi-Seed Blending (08_hgbr_blend)
-
-**Intent** : Le gradient boosting sur 44k lignes comporte une part de variance stochastique selon la graine aléatoire. L'inférence en moyennant les prédictions de 5 à 10 graines aléatoires (`seeds = [0, 42, 123, 456, 789]`) lisse la variance d'échantillonnage sans changer l'architecture.
-
-**Résultat du test préliminaire mesuré** :
-- RMSE modèle unique (seed 0) : `4.7813`
-- RMSE blend 5 graines : **`4.7471`**
-- **Gain immédiat : −0.0343 RMSE** (équivalent à ~0.7 % d'amélioration nette sans risque)
-
-**Todo List** :
-1. Créer `src/model_08_blend.py` reprenant les hyperparamètres de `06_hgbr_tuned`
-2. Boucler sur 5 ou 10 graines et moyenner les prédictions
-3. Appliquer `np.clip(preds, 0.0, 132.0)`
-4. Évaluer, générer `submissions/08_hgbr_blend.csv`, publier sur Skore Hub
-
-**Status** : [ ] pending
+- **Objectif** : Lisser la variance stochastique sur les hyperparamètres de 06_hgbr_tuned via un `VotingRegressor` sur 5 graines (0, 42, 123, 456, 789).
+- **Résultat** : RMSE GroupKFold = **4.7459 ± 0.0996** (gain de −0.0301 vs 06_hgbr_tuned).
+- **Statut** : [x] completed — Rapport Hub [#65509](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/65509), soumission `submissions/08_hgbr_blend.csv` prête.
 
 ---
 
-### Sous-tâche 7 — Élagage des variables bruitées & Anti-Overfitting (SKD012 + SKD001)
-
-**Intent** : Supprimer les colonnes inutiles identifiées par Skore (`['age', 'cohort', 'gene', 'ledd', 'sexM', 'time_since_intake_off']`) et la variable doublon `time_since_first_visit`, tout en augmentant légèrement `min_samples_leaf` (ex: 20 au lieu de 10) et `l2_regularization` (2.0) pour stopper le surapprentissage.
-
-**Todo List** :
-1. Modifier `prepare_features()` pour exclure les colonnes parasites
-2. Ré-entraîner HGBR et mesurer le gain en GroupKFold
-3. Vérifier que l'alerte SKD001 disparaît dans le rapport Skore
-
-**Status** : [ ] pending
+### Sous-tâche 7 — Modèle Longitudinal & Pharmacodynamique (09_longitudinal)
+- **Objectif** : Reconstruire la cinétique de Bateman pour Levodopa ($C(t) = 45.53 \cdot (e^{-0.187 t} - e^{-0.571 t})$), créer le substitut continu `surrogate = off.fillna(on_adjusted)`, projeter la pente intra-patient et interpoler les mesures `off` et `on` par âge exact.
+- **Résultat** : RMSE GroupKFold = **4.0795 ± 0.0552** (gain massif de **−0.6664** vs 08_hgbr_blend, −75.2 % vs Dummy).
+- **Statut** : [x] completed — Rapport Hub [#65528](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/65528), soumission `submissions/09_longitudinal.csv` prête.
 
 ---
 
-### Sous-tâche 8 — Séquençage Temporel & Features de Transition (Lags et Diffs)
-
-**Intent** : Dans `X_test`, chaque patient possède entre 4 et 12 visites (médiane = 7). Puisque toutes les visites de chaque patient sont disponibles, on peut ordonner les visites par `age` et calculer des transitions directes visite à visite :
-1. `off_prev` : valeur de `off` à la visite précédente du patient (capturant la dynamique immédiate)
-2. `diff_off_prev` : `off - off_prev` (accélération ou stabilisation de l'atteinte)
-3. `time_since_prev_visit` : temps écoulé depuis la visite antérieure
-4. `on_over_off_ratio` : ratio de réponse au traitement `on / (off + 1e-4)`
-
-**Todo List** :
-1. Intégrer ces features dans `prepare_features()` en s'assurant qu'aucun leakage n'intervienne (groupby par patient, sort par age, `shift(1)`)
-2. Vérifier la gestion native des NaN pour la première visite du patient
-3. Évaluer l'impact en GroupKFold
-
-**Status** : [ ] pending
+### Sous-tâche 8 — Super Blend Longitudinal Multi-Graines (10_super_blend)
+- **Objectif** : Construire un ensemble diversifié combinant 5 architectures HGBR (variations sur `max_iter`, `learning_rate`, `min_samples_leaf`, `max_leaf_nodes`, `l2_regularization` et graines 0, 42, 123, 456, 789) sur les variables longitudinales.
+- **Résultat** : RMSE GroupKFold = **4.0474 ± 0.0597** (nouveau palier franchi).
+- **Statut** : [x] completed — Rapport Hub [#65559](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/65559), soumission `submissions/10_super_blend.csv` prête.
 
 ---
 
-### Sous-tâche 9 — Stacking Optimisé avec HGBR Tuné (09_ensemble_tuned)
+### Sous-tâche 9 — Méta-Ensemble Hybride HGBR + Ridge Pondéré (11_meta_ensemble)
+- **Objectif** : Assemblage pondéré par `VotingRegressor` alliant 4 modèles HGBR diversifiés (poids 0.22 chacun) et une régression linéaire Ridge régularisée (poids 0.12) pour capturer les scores extrêmes au-delà de 90 points.
+- **Résultat** : RMSE GroupKFold = **4.0459 ± 0.0637** (Meilleur score brut absolu de l'équipe).
+- **Statut** : [x] completed — Rapport Hub [#65640](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/65640), soumission `submissions/11_meta_ensemble.csv` prête.
 
-**Intent** : `07_ensemble.py` a obtenu 4.8003 car il utilisait un HGBR basique non optimisé. En ré-entraînant le Stacking avec le HGBR tuné (`max_iter=500, lr=0.03, l2=1.0`) et un Ridge calibré avec clipping strict, le méta-modèle devrait combiner l'amplitude de Ridge avec la finesse du HGBR et passer sous la barre des `4.73`.
+---
 
-**Status** : [ ] pending
+### Sous-tâche 10 — Trajectoires Leave-One-Visit-Out (12_lovo)
+- **Objectif** : Supprimer l'auto-inclusion de la visite courante dans le calcul de la moyenne et de la régression intra-patient (schéma LOVO strict), avec élagage des variables parasites SKD012.
+- **Résultat** : RMSE GroupKFold = **4.1317 ± 0.0536**, **[SKD001] Potential overfitting PASSED**.
+- **Statut** : [x] completed — Rapport Hub [#65983](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/65983), soumission `submissions/12_lovo.csv` prête.
+
+---
+
+### Sous-tâche 11 — Régularisation Anti-Overfitting & Early Stopping (13_regularized_lovo)
+- **Objectif** : Renforcer la régularisation L2 (l2=4.0), augmenter les feuilles minimales (min_samples_leaf=25) et activer l'arrêt précoce (`early_stopping=True`, tolérance 25 itérations).
+- **Résultat** : RMSE GroupKFold = **4.1413 ± 0.0614**, **[SKD001] Potential overfitting PASSED**.
+- **Statut** : [x] completed — Rapport Hub [#66145](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/66145), soumission `submissions/13_regularized_lovo.csv` prête.
+
+---
+
+### Sous-tâche 12 — Méta-Ensemble Hybride LOVO + Ridge (14_lovo_ensemble)
+- **Objectif** : Assemblage pondéré par `VotingRegressor` combinant 4 architectures HGBR régularisées LOVO (poids 0.22 chacun) et 1 régression linéaire Ridge (poids 0.12).
+- **Résultat** : RMSE GroupKFold = **4.1189 ± 0.0643**, **[SKD001] Potential overfitting PASSED**.
+- **Statut** : [x] completed — Soumission `submissions/14_lovo_ensemble.csv` prête.
 
 ---
 
