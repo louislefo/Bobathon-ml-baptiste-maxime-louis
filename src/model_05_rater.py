@@ -34,8 +34,52 @@ for path in (REPO_ROOT, REPO_ROOT / "src"):
         sys.path.insert(0, str(path))
 
 from parkinson.hub import load_skore_credentials
-# Features de la sous-tache 2 (Maxime) : contexte patient + rater_id categoriel
-from model_04_features import prepare_features
+
+def add_patient_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Ajoute les features de contexte patient (sous-tache 2).
+
+    Calculees uniquement a partir des variables explicatives (jamais de `target`),
+    donc sans fuite : le meme calcul s'applique a X_test, dont les patients sont
+    nouveaux mais dont toutes les visites sont disponibles.
+    """
+    data = df.sort_values(["patient_id", "age"]).copy()
+    by_patient = data.groupby("patient_id")
+
+    data["visit_number"] = by_patient.cumcount() + 1
+    data["n_visits_patient"] = by_patient["age"].transform("size")
+    data["time_since_first_visit"] = data["age"] - by_patient["age"].transform("min")
+
+    mean_off = by_patient["off"].transform("mean")
+    mean_on = by_patient["on"].transform("mean")
+    data["mean_off_patient"] = mean_off
+    data["mean_on_patient"] = mean_on
+    data["std_off_patient"] = by_patient["off"].transform("std")
+    data["std_on_patient"] = by_patient["on"].transform("std")
+    data["mean_ledd_patient"] = by_patient["ledd"].transform("mean")
+
+    data["off_minus_on"] = data["off"] - data["on"]
+    data["diff_from_mean_off"] = data["off"] - mean_off
+    data["diff_from_mean_on"] = data["on"] - mean_on
+
+    # Restaure l'ordre d'origine pour rester aligne avec y et l'Index de soumission
+    return data.loc[df.index]
+
+
+def prepare_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Prepare les variables explicatives, y compris le biais clinicien `rater_id`."""
+    data = add_patient_features(df)
+
+    # Duree depuis le diagnostic clinique
+    data["time_since_diagnosis"] = data["age"] - data["age_at_diagnosis"]
+
+    # Variables categorielles : rater_id est conserve (biais clinicien), pas supprime
+    for col in ["cohort", "gene", "rater_id"]:
+        if col in data.columns:
+            data[col] = data[col].astype("category")
+
+    # Colonnes a exclure de l'apprentissage (identifiants ou cible)
+    drop_cols = [c for c in ["Index", "patient_id", "target"] if c in data.columns]
+    return data.drop(columns=drop_cols)
 
 
 def main() -> None:
