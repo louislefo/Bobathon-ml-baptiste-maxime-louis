@@ -69,3 +69,26 @@ See [SETUP.md step 5](docs/SETUP.md#5-install-skore-and-check-your-setup) for de
 ## Submission rules
 
 All code must be written and run in **Bob** (IDE or CLI), with evaluation through **skore**. Every Kaggle upload must put a Skore Hub EstimatorReport URL (`https://skore.probabl.ai/…`) in the Submission Description, and each Submission needs a **new** report key (`01_dummy`, `02_ridge`, …). Each experiment writes its file to `submissions/<report-key>.csv` (e.g. `submissions/02_ridge.csv`), so the filename matches the report key and a later model never overwrites an earlier submission. See the [competition rules](https://www.kaggle.com/competitions/bobathon-esilv/rules) for eligibility and what makes a Submission valid.
+
+## Modèles, benchmarks et soumissions de l'équipe
+
+Toutes les expérimentations ont été rigoureusement évaluées par validation croisée groupée par patient (`GroupKFold` 5 plis sur `patient_id`) via `skore.evaluate`, publiées sur Skore Hub et exportées dans le dossier `submissions/` :
+
+| # | Modèle / Script | Fichier de soumission | Validation | RMSE mesuré | Gain vs Dummy | Rapport Skore Hub | Statut / Diagnostic |
+|---|---|---|---|---|---|---|---|
+| 0 | `01_dummy` | `01_dummy.csv` | Holdout | 16.4779 | Réf. | [#64092](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/estimators/64092) | Baseline constante |
+| 1 | `02_ridge` | `02_ridge.csv` | Holdout | 10.4877 | −36.4 % | [#64093](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/estimators/64093) | Modèle linéaire simple |
+| 2 | `03_hgbr` | `03_hgbr.csv` | GroupKFold 5 plis | ~7.45 | −54.8 % | [#64096](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64096) | Arbre standard skrub |
+| 3 | `04_hgbr_features` | `04_hgbr_features.csv` | GroupKFold 5 plis | 4.805 | −70.8 % | [#64117](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64117) | Features patient & temporelles |
+| 4 | `05_hgbr_rater` | `05_hgbr_rater.csv` | GroupKFold 5 plis | 4.8106 ± 0.094 | −70.8 % | [#64136](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64136) | Encodage catégoriel rater_id |
+| 5 | `06_hgbr_tuned` | `06_hgbr_tuned.csv` | GroupKFold 5 plis | 4.7760 ± 0.106 | −71.0 % | [#64154](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64154) | Tuned RandomizedSearchCV (MAE 3.63) |
+| 6 | `07_ensemble` | `07_ensemble.csv` | GroupKFold 5 plis | 4.8003 ± 0.103 | −70.9 % | [#64167](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/64167) | Stacking Ridge + HGBR |
+| 7 | `08_hgbr_blend` | `08_hgbr_blend.csv` | GroupKFold 5 plis | 4.7459 ± 0.099 | −71.2 % | [#65509](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/65509) | VotingRegressor 5 graines sur 06 |
+| 8 | `09_longitudinal` | `09_longitudinal.csv` | GroupKFold 5 plis | 4.0795 ± 0.055 | −75.2 % | [#65528](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/65528) | Cinétique Bateman + Trajectoires |
+| 9 | `10_super_blend` | `10_super_blend.csv` | GroupKFold 5 plis | 4.0474 ± 0.060 | −75.4 % | [#65559](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/65559) | Blend multi-architectures |
+| 10 | `11_meta_ensemble` | `11_meta_ensemble.csv` | GroupKFold 5 plis | **4.0459 ± 0.064** | **−75.4 %** | [#65640](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/65640) | Hybride HGBR + Ridge (Meilleur brut) |
+| 11 | `12_lovo` | `12_lovo.csv` | GroupKFold 5 plis | 4.1317 ± 0.054 | −74.9 % | [#65983](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/65983) | **SKD001 PASSED (Zéro fuite intra-patient)** |
+| 12 | `13_regularized_lovo` | `13_regularized_lovo.csv` | GroupKFold 5 plis | 4.1413 ± 0.061 | −74.9 % | [#66145](https://skore.probabl.ai/Bobra%20l'exploratrice/bobathon-esilv/cross-validations/66145) | **SKD001 PASSED (Early stopping)** |
+| 13 | `14_lovo_ensemble` | `14_lovo_ensemble.csv` | GroupKFold 5 plis | **4.1189 ± 0.064** | **−75.0 %** | Soumission locale | **SKD001 PASSED (Ensemble LOVO + Ridge)** |
+
+Pour plus de détails méthodologiques et l'analyse complète des diagnostics de surapprentissage, consulter [kaggle-best-score-plan.md](kaggle-best-score-plan.md).

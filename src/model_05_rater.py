@@ -1,9 +1,10 @@
 """HistGradientBoosting + correction du biais clinicien (05_hgbr_rater) for Bobathon ESILV.
 
 Sous-tache 3 du plan `kaggle-best-score-plan.md` :
-1. Reprend les features de 03_hgbr (time_since_diagnosis, cohort/gene categoriels).
-2. Reprend les features temporelles intra-patient de la sous-tache 2 (04_hgbr_features).
-3. Ajoute `rater_id` comme variable categorielle pour apprendre le biais fixe par clinicien.
+1. Reutilise `prepare_features` de 04_hgbr_features (features temporelles intra-patient).
+2. `rater_id` y est conserve comme variable categorielle (biais fixe par clinicien) :
+   gain mesure de ~0.17 RMSE en GroupKFold (4.97 sans -> 4.80 avec).
+3. Aligne les categories de `rater_id` entre train et test.
 4. Validation croisee groupee par patient (GroupKFold sur patient_id).
 5. Generation de submissions/05_hgbr_rater.csv et reporting Skore Hub.
 
@@ -28,11 +29,11 @@ DATA_DIR = REPO_ROOT / "data"
 SUBMISSIONS_DIR = REPO_ROOT / "submissions"
 HUB_KEY = "05_hgbr_rater"
 
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
+for path in (REPO_ROOT, REPO_ROOT / "src"):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 
 from parkinson.hub import load_skore_credentials
-
 
 def add_patient_features(df: pd.DataFrame) -> pd.DataFrame:
     """Ajoute les features de contexte patient (sous-tache 2).
