@@ -40,6 +40,7 @@ import argparse
 import time
 from pathlib import Path
 import sys
+import joblib
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, RegressorMixin
@@ -675,9 +676,14 @@ def main() -> None:  # noqa: C901
     parser = argparse.ArgumentParser(
         description="Stacking bayesien : sorties BCEst en variables des etages C (34_bayes_stack)"
     )
-    parser.add_argument("--no-hub", action="store_true")
-    parser.add_argument("--quick",  action="store_true",
+    parser.add_argument("--no-hub",       action="store_true")
+    parser.add_argument("--quick",        action="store_true",
                         help="OOF + grille poids uniquement (pas de skore)")
+    parser.add_argument("--report-only",  action="store_true",
+                        help="Evalue, sauvegarde oof/34_report.joblib et publie. "
+                             "Pas d'entrainement final ni de nouveau CSV.")
+    parser.add_argument("--publish-only", action="store_true",
+                        help="Recharge oof/34_report.joblib et publie sur Skore Hub.")
     parser.add_argument("--w-ca",  type=float, default=W_CA)
     parser.add_argument("--w-cb",  type=float, default=W_CB)
     parser.add_argument("--w-c1",  type=float, default=W_C1)
@@ -686,6 +692,20 @@ def main() -> None:  # noqa: C901
     params = dict(w_ca=args.w_ca, w_cb=args.w_cb, w_c1=args.w_c1, w_c2=args.w_c2)
 
     t_global = _Timer("global")
+
+    # ── --publish-only : recharge le rapport et publie ────────────────────────
+    if args.publish_only:
+        report_path = OOF_DIR / "34_report.joblib"
+        print(f"  Rechargement du rapport depuis {report_path}...", flush=True)
+        report = joblib.load(report_path)
+        print(f"  Publication sur Skore Hub (cle '{HUB_KEY}')...", flush=True)
+        config = load_skore_credentials(REPO_ROOT)
+        login(mode="hub")
+        project = Project(name="bobathon-esilv", mode="hub", workspace=config.get("workspace"))
+        project.put(HUB_KEY, report)
+        print("  Publication terminee.", flush=True)
+        t_global.done()
+        return
 
     print("=" * 70, flush=True)
     print("MODELE 34 BAYES STACK", flush=True)
@@ -711,17 +731,56 @@ def main() -> None:  # noqa: C901
         t_global.done()
         return
 
-    # ── Evaluation via GroupShuffleSplit (1 pli, test_size=0.2) ──────────────
-    print("\n[3/5] Evaluation GroupShuffleSplit(1, test_size=0.2)...", flush=True)
+    # ── Splitter commun (GroupShuffleSplit 1 pli) ─────────────────────────────
     splitter = list(GroupShuffleSplit(
         n_splits=1, test_size=0.2, random_state=0,
     ).split(X, y, groups=X["patient_id"]))
 
+    # ── --report-only : evaluate + sauvegarde + publication ──────────────────
+    if args.report_only:
+        print("\n[report-only] Evaluation GroupShuffleSplit(1, test_size=0.2)...", flush=True)
+        from skore import configuration
+        configuration.ignore_checks = ["SKD003"]
+
+        model = BayesStackRegressor(**params)
+        with _Timer("skore.evaluate"):
+            report = evaluate(model, X, y, splitter=splitter)
+
+        try:
+            print(f"  RMSE :\n{report.metrics.rmse()}", flush=True)
+        except Exception as exc:
+            print(f"  (erreur metrique: {exc})", flush=True)
+        try:
+            print(f"  Controles Skore :\n{report.checks.summarize(fast_mode=True)}",
+                  flush=True)
+        except Exception as exc:
+            print(f"  Erreur controles : {exc}", flush=True)
+
+        OOF_DIR.mkdir(parents=True, exist_ok=True)
+        report_path = OOF_DIR / "34_report.joblib"
+        joblib.dump(report, report_path)
+        print(f"  Rapport sauvegarde : {report_path}", flush=True)
+
+        if args.no_hub:
+            print("  Hub ignore (--no-hub).", flush=True)
+            t_global.done()
+            return
+
+        print(f"  Publication sur Skore Hub (cle '{HUB_KEY}')...", flush=True)
+        config = load_skore_credentials(REPO_ROOT)
+        login(mode="hub")
+        project = Project(name="bobathon-esilv", mode="hub", workspace=config.get("workspace"))
+        project.put(HUB_KEY, report)
+        print("  Publication terminee.", flush=True)
+        t_global.done()
+        return
+
+    # ── Mode complet (evaluate + fit final + soumission) ─────────────────────
+    print("\n[3/5] Evaluation GroupShuffleSplit(1, test_size=0.2)...", flush=True)
     model = BayesStackRegressor(**params)
 
     with _Timer("skore.evaluate"):
-        from skore import evaluate as sk_evaluate
-        report = sk_evaluate(model, X, y, splitter=splitter)
+        report = evaluate(model, X, y, splitter=splitter)
 
     try:
         print(f"  RMSE :\n{report.metrics.rmse()}", flush=True)
@@ -745,7 +804,6 @@ def main() -> None:  # noqa: C901
         v_sm = smooth_predictions(X_va_ev["patient_id"].values, X_va_ev["age"].values, v)
         print(f"    {name:<8} RMSE={_rmse(v, y_va_ev):.4f}  lisse={_rmse(v_sm, y_va_ev):.4f}",
               flush=True)
-    # Blend lisse
     blend_raw = (args.w_ca * comp_va["ca"] + args.w_cb * comp_va["cb"]
                  + args.w_c1 * comp_va["c1"] + args.w_c2 * comp_va["c2"])
     blend_sm = smooth_predictions(X_va_ev["patient_id"].values, X_va_ev["age"].values, blend_raw)
