@@ -1,6 +1,6 @@
-# Dossier de Rendu : Modele 34 Bayes Stack
+# Delivery Folder: Model 34 Bayes Stack
 
-Ce dossier regroupe le code source optimise et la documentation complete du meilleur modele du hackathon :
+This folder contains the complete source code and technical documentation for the best-performing model of the hackathon:
 
-1. [model_34_bayes_stack.py](file:///c:/Users/louis/OneDrive/Desktop/Esilv/A4/Machine%20Learning/Hackathon/bobathon-esilv/rendu/model_34_bayes_stack.py) : Script Python integral, commente pas a pas avec ses docstrings et ses options CLI.
-2. [documentation_34_bayes_stack.md](file:///c:/Users/louis/OneDrive/Desktop/Esilv/A4/Machine%20Learning/Hackathon/bobathon-esilv/rendu/documentation_34_bayes_stack.md) : Documentation technique complete avec schema Mermaid, justifications theoriques, explications des etages et manuel d'execution.
+1. [model_34_bayes_stack.py](file:///c:/Users/louis/OneDrive/Desktop/Esilv/A4/Machine%20Learning/Hackathon/bobathon-esilv/rendu/model_34_bayes_stack.py): Full Python implementation, fully commented and documented with docstrings and CLI options.
+2. [documentation_34_bayes_stack.md](file:///c:/Users/louis/OneDrive/Desktop/Esilv/A4/Machine%20Learning/Hackathon/bobathon-esilv/rendu/documentation_34_bayes_stack.md): Comprehensive technical documentation with a Mermaid architecture flowchart, theoretical foundations, stage-by-stage pipeline details, and execution instructions.
