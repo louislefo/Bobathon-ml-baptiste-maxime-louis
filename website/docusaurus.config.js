@@ -6,7 +6,7 @@ const baseUrl = process.env.BASE_URL || '/';
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Bobathon ESILV',
-  tagline: 'Evaluation Motrice et Correction des Biais — Maladie de Parkinson',
+  tagline: 'Evaluation Motrice et Correction des Biais - Maladie de Parkinson',
   favicon: 'img/favicon.svg',
 
   url: 'https://louislefo.github.io',
@@ -17,6 +17,11 @@ const config = {
   trailingSlash: false,
 
   onBrokenLinks: 'warn',
+
+  markdown: {
+    mermaid: true,
+  },
+  themes: ['@docusaurus/theme-mermaid'],
 
   i18n: {
     defaultLocale: 'fr',
@@ -46,20 +51,21 @@ const config = {
       colorMode: {
         defaultMode: 'light',
         disableSwitch: false,
-        respectPrefersColorScheme: false,
+        respectPrefersColorScheme: true,
       },
       navbar: {
         title: 'Bobathon ESILV',
-        logo: {
-          alt: 'Probabl Logo',
-          src: 'figures/probabl-logo.svg',
-        },
         items: [
           {
             type: 'docSidebar',
             sidebarId: 'docsSidebar',
             position: 'left',
             label: 'Documentation',
+          },
+          {
+            to: '/doc/modele-34-bayes-stack',
+            label: 'Modele 34 (Champion)',
+            position: 'left',
           },
           {
             href: 'pathname:///reports/eda_visits_train.html',
@@ -100,6 +106,10 @@ const config = {
               {
                 label: 'Modeles et Benchmark',
                 to: '/doc/modeles-et-experimentations',
+              },
+              {
+                label: 'Modele 34 Champion',
+                to: '/doc/modele-34-bayes-stack',
               },
               {
                 label: 'Guide de Reproduction',

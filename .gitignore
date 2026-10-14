@@ -17,6 +17,17 @@ scratch/
 # the leaderboard, not git, is the record)
 submissions/
 
+# Competition data: download it from the Kaggle Data tab into data/
+# (competition rules forbid republishing it)
+data/*.csv
+
+# Docusaurus static build (rebuilt by the GitHub Pages workflow)
+site/
+
+# Bob is the only coding agent: no other agent config folders
+.agents/
+.pi/
+
 # bytecode
 __pycache__/
 *.pyc
