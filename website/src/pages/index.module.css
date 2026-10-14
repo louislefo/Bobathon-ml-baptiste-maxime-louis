@@ -1,9 +1,14 @@
-/* Hero Banner sobre */
+/* Hero Banner */
 .heroBanner {
-  padding: 4.5rem 0 3.5rem;
+  padding: 5rem 0 3.5rem;
   text-align: center;
   background-color: var(--ifm-background-color);
+  background: radial-gradient(circle at 50% 20%, rgba(29, 78, 216, 0.05) 0%, transparent 70%), var(--ifm-background-color);
   border-bottom: 1px solid var(--ifm-border-color);
+}
+
+[data-theme='dark'] .heroBanner {
+  background: radial-gradient(circle at 50% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 70%), var(--ifm-background-color);
 }
 
 .brandLogos {
@@ -16,9 +21,14 @@
 }
 
 .brandLogo {
-  height: 40px;
+  height: 38px;
   width: auto;
   opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+.brandLogo:hover {
+  opacity: 1;
 }
 
 .heroTitle {
@@ -45,41 +55,149 @@
   flex-wrap: wrap;
 }
 
+/* Bouton Champion (Modele 34) */
+.championBtn {
+  background-color: var(--color-champion-accent);
+  color: #ffffff !important;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 0.75rem 1.6rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  text-decoration: none !important;
+  display: inline-flex;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+}
+
+.championBtn:hover {
+  background-color: #047857;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.35);
+}
+
+/* Boutons generaux */
 .primaryBtn {
-  background-color: #0f3b75;
+  background-color: var(--ifm-color-primary);
   color: #ffffff !important;
   font-weight: 600;
   font-size: 0.95rem;
   padding: 0.75rem 1.6rem;
-  border-radius: 6px;
-  transition: background-color 0.15s ease;
+  border-radius: 8px;
+  transition: all 0.2s ease;
   text-decoration: none !important;
   display: inline-flex;
   align-items: center;
 }
 
+[data-theme='dark'] .primaryBtn {
+  background-color: #38bdf8;
+  color: #0b1120 !important;
+}
+
 .primaryBtn:hover {
-  background-color: #0a2540;
+  background-color: var(--ifm-color-primary-dark);
   color: #ffffff !important;
+  transform: translateY(-1px);
+}
+
+[data-theme='dark'] .primaryBtn:hover {
+  background-color: #7dd3fc;
+  color: #0b1120 !important;
 }
 
 .secondaryBtn {
-  background-color: transparent;
+  background-color: var(--ifm-background-surface-color);
   color: var(--ifm-heading-color) !important;
   border: 1px solid var(--ifm-border-color);
   font-weight: 600;
   font-size: 0.95rem;
   padding: 0.75rem 1.6rem;
-  border-radius: 6px;
-  transition: all 0.15s ease;
+  border-radius: 8px;
+  transition: all 0.2s ease;
   text-decoration: none !important;
   display: inline-flex;
   align-items: center;
 }
 
 .secondaryBtn:hover {
-  background-color: var(--ifm-background-surface-color);
-  border-color: #94a3b8;
+  background-color: var(--ifm-border-color);
+  transform: translateY(-1px);
+}
+
+/* Section Champion Highlight */
+.championSection {
+  padding: 2.5rem 0;
+  background: var(--color-champion-bg);
+  border-bottom: 1px solid var(--color-champion-border);
+}
+
+.championCard {
+  border: 1px solid var(--color-champion-border);
+  background-color: var(--ifm-background-color);
+  border-radius: 12px;
+  padding: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.championInfo {
+  flex: 2;
+  min-width: 280px;
+}
+
+.championTag {
+  display: inline-block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  color: var(--color-champion-accent);
+  background: var(--color-champion-bg);
+  border: 1px solid var(--color-champion-border);
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.championTitle {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--ifm-heading-color);
+  margin-bottom: 0.4rem;
+}
+
+.championDesc {
+  font-size: 0.95rem;
+  color: var(--ifm-font-color-base);
+  margin: 0;
+  line-height: 1.55;
+}
+
+.championMetric {
+  text-align: right;
+  flex: 1;
+  min-width: 180px;
+}
+
+.championScoreValue {
+  font-size: 2.4rem;
+  font-weight: 900;
+  color: var(--color-champion-accent);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.championScoreLabel {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ifm-font-color-base);
 }
 
 /* Section generale */
@@ -122,7 +240,7 @@
   max-width: 680px;
 }
 
-/* Ligne de statistiques epuree (AUCUNE BOITE FERMEE) */
+/* Statistiques */
 .statsRow {
   display: flex;
   align-items: center;
@@ -156,22 +274,32 @@
 
 .statDetail {
   font-size: 0.82rem;
-  color: #64748b;
+  color: var(--ifm-font-color-base);
+  opacity: 0.8;
 }
 
-/* Section Rapports : deux panneaux sobres sans grosses cases */
+/* Rapports */
 .reportsGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 2.5rem;
+  gap: 2rem;
 }
 
 .reportItem {
-  border-left: 2px solid var(--ifm-color-primary);
-  padding-left: 1.5rem;
+  background-color: var(--ifm-background-color);
+  border: 1px solid var(--ifm-border-color);
+  border-left: 4px solid var(--ifm-color-primary);
+  border-radius: 0 8px 8px 0;
+  padding: 1.75rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.reportItem:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .reportItemTitle {
@@ -202,12 +330,13 @@
   text-decoration: underline;
 }
 
-/* Tableau de Benchmarks sobre et net */
+/* Tableaux de Benchmarks */
 .tableContainer {
   overflow-x: auto;
   border: 1px solid var(--ifm-border-color);
-  border-radius: 6px;
+  border-radius: 8px;
   background-color: var(--ifm-background-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 .benchTable {
@@ -242,6 +371,11 @@
   background-color: var(--ifm-background-surface-color);
 }
 
+.championRow td {
+  background-color: var(--color-champion-bg) !important;
+  font-weight: 600;
+}
+
 .codeKey {
   font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.82rem;
@@ -249,17 +383,34 @@
   font-weight: 600;
 }
 
+.pillChampion {
+  font-size: 0.76rem;
+  color: var(--color-champion-text);
+  background-color: var(--color-champion-bg);
+  border: 1px solid var(--color-champion-border);
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  font-weight: 700;
+  display: inline-block;
+}
+
 .pillNeutral {
-  font-size: 0.78rem;
-  color: #0f3b75;
+  font-size: 0.76rem;
+  color: var(--ifm-color-primary);
+  background-color: rgba(29, 78, 216, 0.08);
+  border: 1px solid rgba(29, 78, 216, 0.2);
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
   font-weight: 600;
+  display: inline-block;
 }
 
 [data-theme='dark'] .pillNeutral {
-  color: #38bdf8;
+  background-color: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.3);
 }
 
-/* Grille figures medicales sobres */
+/* Figures */
 .figuresGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -275,7 +426,7 @@
   width: 100%;
   height: 160px;
   object-fit: cover;
-  border-radius: 4px;
+  border-radius: 6px;
   border: 1px solid var(--ifm-border-color);
   background-color: var(--ifm-background-surface-color);
   margin-bottom: 0.75rem;
@@ -296,9 +447,9 @@
   margin: 0;
 }
 
-/* Equipe sobre en ligne simple */
+/* Equipe */
 .teamSection {
-  padding: 3rem 0;
+  padding: 3.5rem 0;
   border-top: 1px solid var(--ifm-border-color);
 }
 
@@ -306,9 +457,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2.5rem;
+  gap: 3rem;
   flex-wrap: wrap;
-  margin-top: 1.5rem;
+  margin-top: 1.75rem;
 }
 
 .teamMember {
@@ -317,13 +468,14 @@
 
 .teamMemberName {
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   color: var(--ifm-heading-color);
 }
 
 .teamMemberRole {
-  font-size: 0.82rem;
-  color: #64748b;
+  font-size: 0.85rem;
+  color: var(--ifm-font-color-base);
+  opacity: 0.8;
 }
 
 @media screen and (max-width: 768px) {
@@ -332,6 +484,13 @@
   }
   .sectionTitle {
     font-size: 1.6rem;
+  }
+  .championCard {
+    flex-direction: column;
+    text-align: center;
+  }
+  .championMetric {
+    text-align: center;
   }
   .statsRow {
     flex-direction: column;

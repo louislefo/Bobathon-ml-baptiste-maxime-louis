@@ -8,7 +8,6 @@ import styles from './index.module.css';
 
 function HomepageHero() {
   const {siteConfig} = useDocusaurusContext();
-  const probablLogo = useBaseUrl('/figures/probabl-logo.svg');
   const ibmLogo = useBaseUrl('/figures/ibm-logo.svg');
   const icmLogo = useBaseUrl('/figures/logo_icm.png');
 
@@ -16,7 +15,6 @@ function HomepageHero() {
     <header className={styles.heroBanner}>
       <div className="container">
         <div className={styles.brandLogos}>
-          <img src={probablLogo} alt="Probabl" className={styles.brandLogo} />
           <img src={ibmLogo} alt="IBM" className={styles.brandLogo} />
           <img src={icmLogo} alt="ICM Paris" className={styles.brandLogo} />
         </div>
@@ -29,6 +27,11 @@ function HomepageHero() {
         </p>
         <div className={styles.heroButtons}>
           <Link
+            className={styles.championBtn}
+            to="/doc/modele-34-bayes-stack">
+            Decouvrir le Modele Champion (34_bayes_stack) &rarr;
+          </Link>
+          <Link
             className={styles.primaryBtn}
             to="/doc/introduction">
             Consulter la Documentation
@@ -38,16 +41,34 @@ function HomepageHero() {
             href="#rapports">
             Rapports Exploratoires (EDA)
           </a>
-          <a
-            className={styles.secondaryBtn}
-            href="https://www.kaggle.com/competitions/bobathon-esilv/"
-            target="_blank"
-            rel="noopener noreferrer">
-            Competition Kaggle
-          </a>
         </div>
       </div>
     </header>
+  );
+}
+
+function ChampionHighlight() {
+  return (
+    <section className={styles.championSection}>
+      <div className="container">
+        <div className={styles.championCard}>
+          <div className={styles.championInfo}>
+            <span className={styles.championTag}>Modele Champion Equipe</span>
+            <Heading as="h3" className={styles.championTitle}>
+              Modele 34 : Stacking Bayesien Adaptatif
+            </Heading>
+            <p className={styles.championDesc}>
+              Injection des sorties de <code>BayesCurveEstimator</code> (esperance, ecart-type a posteriori et divergence de trajectoire)
+              directement en covariables de regresseurs HGBR a double ancre residuelle.
+            </p>
+          </div>
+          <div className={styles.championMetric}>
+            <div className={styles.championScoreValue}>3.38</div>
+            <div className={styles.championScoreLabel}>RMSE CV (Nouveau Record)</div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -64,9 +85,9 @@ function StatsSection() {
       detail: '1 395 patients holdout (X_test)',
     },
     {
-      value: '0 %',
-      label: 'Perte Totale',
-      detail: '100% des visites ont au moins un score moteur',
+      value: '3.38',
+      label: 'Meilleur Score RMSE',
+      detail: 'Modele 34 Bayes Stack sur splits stricts',
     },
     {
       value: '5 Plis',
@@ -153,42 +174,64 @@ function BenchmarkSection() {
       name: 'Dummy Mean Regressor',
       description: 'Moyenne empirique globale (plancher d evaluation de reference)',
       rmse: '~16.50',
-      status: 'Socle minimal',
-    },
-    {
-      key: '02_ridge',
-      name: 'Ridge Regressor (alpha=10)',
-      description: 'Regression lineaire regularisee sur variables continues',
-      rmse: '-30 %',
-      status: 'Valide',
+      status: 'Plancher',
+      isChampion: false,
     },
     {
       key: '03_hgbr',
       name: 'HistGradientBoosting + skrub',
       description: 'Arbres avec gestion native des NaN et tabular_pipeline',
-      rmse: '-50 %',
+      rmse: '~8.25 (-50%)',
       status: 'Valide',
-    },
-    {
-      key: '04_features',
-      name: 'Features Temporelles Intra-Patient',
-      description: 'Dynamique temporelle de suivi et retards medicamenteux',
-      rmse: '-60 %',
-      status: 'Valide',
+      isChampion: false,
     },
     {
       key: '05_rater',
       name: 'Correction du Biais Evaluateur',
       description: 'Integration du biais systematique du clinicien (rater_id)',
-      rmse: '-62 %',
+      rmse: '~6.30 (-62%)',
       status: 'Valide',
+      isChampion: false,
     },
     {
       key: '07_ensemble',
-      name: 'Stacking Ensemble (Ridge + HGBR)',
+      name: 'Stacking Initial (Ridge + HGBR)',
       description: 'Meta-modele Ridge entraine sur splits groupes PatientGroupKFold',
-      rmse: '-67 %',
-      status: 'Performant',
+      rmse: '~5.40 (-67%)',
+      status: 'Valide',
+      isChampion: false,
+    },
+    {
+      key: '24_coef_blend',
+      name: 'Regression de Paraboles Patient',
+      description: 'Prevision des coefficients b0, b1, b2 de trajectoire par patient',
+      rmse: '3.49',
+      status: 'Majeur',
+      isChampion: false,
+    },
+    {
+      key: '32_ultimate',
+      name: 'Architecture Multi-Etages',
+      description: 'Etages A, B, C1, C2 avec sigmas heteroscedastiques',
+      rmse: '3.50',
+      status: 'Valide',
+      isChampion: false,
+    },
+    {
+      key: '33_bayes_blend',
+      name: 'Blend Probabiliste Bayesien',
+      description: 'BayesCurveEstimator combine avec poids fixes (0.35)',
+      rmse: '3.48',
+      status: 'Avance',
+      isChampion: false,
+    },
+    {
+      key: '34_bayes_stack',
+      name: 'Stacking Bayesien Dynamique',
+      description: 'Sorties bayesiennes et incertitude en variables de metamodeles HGBR',
+      rmse: '3.38',
+      status: 'Champion Equipe',
+      isChampion: true,
     },
   ];
 
@@ -213,18 +256,22 @@ function BenchmarkSection() {
                 <th>Cle Hub</th>
                 <th>Modele</th>
                 <th>Approche Algorithmique</th>
-                <th>Impact RMSE</th>
+                <th>Score RMSE</th>
                 <th>Statut</th>
               </tr>
             </thead>
             <tbody>
               {models.map((m, idx) => (
-                <tr key={idx}>
+                <tr key={idx} className={m.isChampion ? styles.championRow : ''}>
                   <td><span className={styles.codeKey}>{m.key}</span></td>
                   <td><strong>{m.name}</strong></td>
                   <td>{m.description}</td>
-                  <td>{m.rmse}</td>
-                  <td><span className={styles.pillNeutral}>{m.status}</span></td>
+                  <td><strong>{m.rmse}</strong></td>
+                  <td>
+                    <span className={m.isChampion ? styles.pillChampion : styles.pillNeutral}>
+                      {m.status}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -320,13 +367,13 @@ function TeamSection() {
 }
 
 export default function Home() {
-  const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
       title="Accueil"
       description="Plateforme de presentation et documentation du Bobathon ESILV - Challenge Machine Learning Parkinson">
       <HomepageHero />
       <main>
+        <ChampionHighlight />
         <StatsSection />
         <ReportsSection />
         <BenchmarkSection />

@@ -1,66 +1,79 @@
 /**
  * Global CSS styles for Bobathon ESILV
- * Palette sobre, inspiree du noir et du bleu sombre
+ * Palette moderne, professionnelle et accessible (Medical Tech / Data Science)
  */
 
 :root {
-  /* Palette Mode Clair (par defaut) */
-  --ifm-color-primary: #0f3b75;
-  --ifm-color-primary-dark: #0c2f5e;
-  --ifm-color-primary-darker: #092447;
-  --ifm-color-primary-darkest: #061830;
-  --ifm-color-primary-light: #164e96;
-  --ifm-color-primary-lighter: #1d61b8;
-  --ifm-color-primary-lightest: #2777db;
+  /* Palette Mode Clair */
+  --ifm-color-primary: #1d4ed8; /* Blue 700 - Royal vibrant */
+  --ifm-color-primary-dark: #1e40af; /* Blue 800 */
+  --ifm-color-primary-darker: #1e3a8a; /* Blue 900 */
+  --ifm-color-primary-darkest: #172554; /* Blue 950 */
+  --ifm-color-primary-light: #3b82f6; /* Blue 500 */
+  --ifm-color-primary-lighter: #60a5fa; /* Blue 400 */
+  --ifm-color-primary-lightest: #93c5fd; /* Blue 300 */
 
   --ifm-background-color: #ffffff;
   --ifm-background-surface-color: #f8fafc;
-  --ifm-navbar-background-color: #ffffff;
-  --ifm-footer-background-color: #f8fafc;
+  --ifm-navbar-background-color: rgba(255, 255, 255, 0.95);
+  --ifm-footer-background-color: #f1f5f9;
 
-  --ifm-heading-color: #0f172a;
-  --ifm-font-color-base: #334155;
-  --ifm-link-color: #0f3b75;
-  --ifm-link-hover-color: #092447;
+  --ifm-heading-color: #0f172a; /* Slate 900 */
+  --ifm-font-color-base: #334155; /* Slate 700 */
+  --ifm-link-color: #1d4ed8;
+  --ifm-link-hover-color: #1e40af;
 
   --ifm-border-color: #e2e8f0;
   --ifm-code-font-size: 92%;
   --ifm-font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --docusaurus-highlighted-code-line-bg: rgba(15, 59, 117, 0.08);
+  --docusaurus-highlighted-code-line-bg: rgba(29, 78, 216, 0.08);
+
+  /* Couleurs accent */
+  --color-champion-bg: #ecfdf5;
+  --color-champion-border: #a7f3d0;
+  --color-champion-text: #065f46;
+  --color-champion-accent: #059669;
 }
 
-/* Palette Mode Sombre (Bleu nuit profond & noir) */
+/* Palette Mode Sombre */
 [data-theme='dark'] {
-  --ifm-color-primary: #38bdf8;
-  --ifm-color-primary-dark: #0284c7;
-  --ifm-color-primary-darker: #0369a1;
-  --ifm-color-primary-darkest: #075985;
-  --ifm-color-primary-light: #7dd3fc;
-  --ifm-color-primary-lighter: #bae6fd;
-  --ifm-color-primary-lightest: #e0f2fe;
+  --ifm-color-primary: #38bdf8; /* Sky 400 - Luminescent and clean */
+  --ifm-color-primary-dark: #0284c7; /* Sky 600 */
+  --ifm-color-primary-darker: #0369a1; /* Sky 700 */
+  --ifm-color-primary-darkest: #075985; /* Sky 800 */
+  --ifm-color-primary-light: #7dd3fc; /* Sky 300 */
+  --ifm-color-primary-lighter: #bae6fd; /* Sky 200 */
+  --ifm-color-primary-lightest: #e0f2fe; /* Sky 100 */
 
-  --ifm-background-color: #090d16;
-  --ifm-background-surface-color: #0f172a;
-  --ifm-navbar-background-color: rgba(9, 13, 22, 0.95);
-  --ifm-footer-background-color: #060910;
+  --ifm-background-color: #0b1120; /* Deep Slate 950 */
+  --ifm-background-surface-color: #111c34; /* Soft slate/navy surface */
+  --ifm-navbar-background-color: rgba(11, 17, 32, 0.95);
+  --ifm-footer-background-color: #070d19;
 
-  --ifm-heading-color: #f8fafc;
-  --ifm-font-color-base: #94a3b8;
+  --ifm-heading-color: #f8fafc; /* Slate 50 */
+  --ifm-font-color-base: #94a3b8; /* Slate 400 */
   --ifm-link-color: #38bdf8;
   --ifm-link-hover-color: #7dd3fc;
 
   --ifm-border-color: #1e293b;
   --docusaurus-highlighted-code-line-bg: rgba(56, 189, 248, 0.15);
+
+  --color-champion-bg: rgba(5, 150, 105, 0.15);
+  --color-champion-border: rgba(52, 211, 153, 0.4);
+  --color-champion-text: #6ee7b7;
+  --color-champion-accent: #34d399;
 }
 
-/* Navbar sobre */
+/* Navbar */
 .navbar {
   border-bottom: 1px solid var(--ifm-border-color);
-  box-shadow: none;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
 }
 
 .navbar__title {
   font-weight: 700;
+  font-size: 1.1rem;
   color: var(--ifm-heading-color);
   letter-spacing: -0.02em;
 }
@@ -68,6 +81,7 @@
 .navbar__link {
   font-weight: 500;
   color: var(--ifm-font-color-base);
+  transition: color 0.15s ease;
 }
 
 .navbar__link:hover,
@@ -75,10 +89,10 @@
   color: var(--ifm-color-primary);
 }
 
-/* Footer sobre */
+/* Footer */
 .footer {
   border-top: 1px solid var(--ifm-border-color);
-  padding: 3rem 0 2rem;
+  padding: 3.5rem 0 2rem;
 }
 
 .footer__title {
@@ -93,10 +107,16 @@
 .footer__link-item {
   color: var(--ifm-font-color-base);
   font-size: 0.9rem;
+  transition: color 0.15s ease;
+}
+
+.footer__link-item:hover {
+  color: var(--ifm-color-primary);
 }
 
 .footer__copyright {
-  color: #64748b;
+  color: var(--ifm-font-color-base);
+  opacity: 0.75;
   font-size: 0.85rem;
   margin-top: 2rem;
   padding-top: 1.5rem;
@@ -113,7 +133,7 @@
 }
 
 .markdown img {
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid var(--ifm-border-color);
   margin: 1.5rem 0 0.5rem;
   max-width: 100%;
@@ -124,6 +144,8 @@
   border-collapse: collapse;
   margin: 1.5rem 0;
   font-size: 0.95rem;
+  border-radius: 6px;
+  overflow: hidden;
 }
 
 .markdown th {
@@ -137,4 +159,15 @@
 .markdown td {
   border: 1px solid var(--ifm-border-color);
   padding: 0.75rem 1rem;
+}
+
+/* Support Mermaid */
+.docusaurus-mermaid-container {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+  background-color: var(--ifm-background-surface-color);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--ifm-border-color);
 }

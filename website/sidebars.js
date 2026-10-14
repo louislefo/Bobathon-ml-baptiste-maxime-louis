@@ -8,6 +8,7 @@ const sidebars = {
     'analyse-donnees-eda',
     'strategie-de-validation',
     'modeles-et-experimentations',
+    'modele-34-bayes-stack',
     'regles-competition-et-soumissions',
     'guide-de-reproduction',
   ],
