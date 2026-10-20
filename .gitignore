@@ -46,15 +46,16 @@ website/node_modules/
 website/.docusaurus/
 website/build/
 
-# Local video preparation archive
+# Local archives and media
 archive_video_prep/
-
-# Local intermediate models archive
 archive_models/
-
-# Archives
 *.zip
+*.tar
+*.gz
+*.mp4
+*.mov
+*.mkv
 
-# Explicitly keep submission file for the final deliverable
-!Le_Forestier_Laurent_Noailhac_v2/submissions/
-!Le_Forestier_Laurent_Noailhac_v2/submissions/*.csv
+# Local delivery folders (prepared for DVL submission, excluded from git)
+rendu/
+Le_Forestier_Laurent_Noailhac_v2/
