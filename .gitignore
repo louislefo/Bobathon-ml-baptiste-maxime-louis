@@ -45,3 +45,17 @@ skills/
 website/node_modules/
 website/.docusaurus/
 website/build/
+
+# Local archives and media
+archive_video_prep/
+archive_models/
+*.zip
+*.tar
+*.gz
+*.mp4
+*.mov
+*.mkv
+
+# Local delivery folders (prepared for DVL submission, excluded from git)
+rendu/
+Le_Forestier_Laurent_Noailhac_v2/
