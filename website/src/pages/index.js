@@ -335,9 +335,9 @@ function FiguresSection() {
 
 function TeamSection() {
   const members = [
-    { name: 'Baptiste', role: 'Feature Engineering & Data Science' },
-    { name: 'Maxime', role: 'Machine Learning & Model Ensembling' },
-    { name: 'Louis', role: 'Architecture, Evaluation & Documentation' },
+    { name: 'Maxime Laurent', role: 'Machine Learning & Model Ensembling' },
+    { name: 'Baptiste Noailhac', role: 'Feature Engineering & Data Science' },
+    { name: 'Louis Le Forestier', role: 'Architecture, Evaluation & Documentation' },
   ];
 
   return (

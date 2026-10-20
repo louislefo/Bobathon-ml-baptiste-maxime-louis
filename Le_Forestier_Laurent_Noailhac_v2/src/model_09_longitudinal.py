@@ -1,17 +1,22 @@
-"""HistGradientBoosting model with Leave-One-Visit-Out (LOVO) Trajectories (12_lovo).
+"""HistGradientBoosting model with advanced longitudinal & PKPD features (09_longitudinal).
 
-Sub-task: Modele LOVO anti-surapprentissage (Sous-tache 10)
+Sub-task: Modele longitudinal et pharmacodynamique (Sous-tache 7)
 Project: Bobathon ESILV (Probabl x IBM)
 
-Innovations :
-1. Calcul LOVO (Leave-One-Visit-Out) intra-patient :
-   Pour chaque visite i d'un patient, la trajectoire (moyenne et droite de regression de severite)
-   est ajustee EXCLUSIVEMENT sur les autres visites {j != i} du patient.
-   Cela elimine toute fuite d'information et empeche l'arbre de memoriser sa propre projection.
-2. Pharmacodynamie Levodopa de Bateman integree dans le substitut continu.
-3. Elagage strict des variables parasites et redondantes selon les diagnostics Skore (SKD012/SKD008).
+Innovations majeures :
+1. Pharmacodynamie Levodopa (Courbe de Bateman pour time_since_intake_on) :
+   - C(t) = A * (exp(-ke * t) - exp(-ka * t)) avec ka=0.571, ke=0.187, A=45.53
+   - Estimation de l'effet therapeutique et calcul de on_adjusted = on + effet
+   - Construction d'un substitut continu de OFF (surrogate = off.fillna(on_adjusted))
+2. Trajectoire intra-patient et interpolation temporelle par age :
+   - Interpolation lineaire intra-patient de off et on selon l'age exact
+   - Ajustement de pente intra-patient (patient_slope et patient_linear_surrogate)
+   - Lags longitudinaux par patient (off_prev, off_next)
+   - Residus et ecarts a la trajectoire du patient (diff_from_linear_surrogate, diff_from_interp_off)
+3. Encodage categoriel natif des 50 evaluateurs (rater_id) et des cohortes/genes.
 4. Validation croisee groupee par patient (GroupKFold 5 plis).
-5. Generation de submissions/12_lovo.csv et publication du rapport sur Skore Hub ('12_lovo').
+5. Entrainement final et generation de submissions/09_longitudinal.csv avec bornage [0.0, 132.0].
+6. Publication du rapport sur Skore Hub sous la cle '09_longitudinal'.
 """
 
 from __future__ import annotations
@@ -29,22 +34,25 @@ from skore import Project, evaluate, login
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = REPO_ROOT / "data"
 SUBMISSIONS_DIR = REPO_ROOT / "submissions"
-HUB_KEY = "12_lovo"
+HUB_KEY = "09_longitudinal"
 
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from parkinson.hub import load_skore_credentials
 
+# Parametres de la cinetique pharmacodynamique de Bateman (ajustes sur les visites avec ON et OFF)
 BATEMAN_A = 45.5346
 BATEMAN_KE = 0.1870
 BATEMAN_KA = 0.5708
 
 
-def prepare_lovo_features(df: pd.DataFrame) -> pd.DataFrame:
-    """Prepare les variables explicatives en appliquant le schema LOVO intra-patient."""
+def prepare_longitudinal_features(df: pd.DataFrame) -> pd.DataFrame:
+    """Prepare les variables explicatives enrichies de la dynamique longitudinale et PKPD."""
     data = df.copy()
     orig_index = data.index
+
+    # Tri par patient et par age pour garantir la chronologie
     data = data.sort_values(["patient_id", "age"])
 
     # 1. Progression temporelle et suivi
@@ -52,14 +60,16 @@ def prepare_lovo_features(df: pd.DataFrame) -> pd.DataFrame:
     data["visit_number"] = data.groupby("patient_id")["age"].rank(method="first").astype(int)
     data["n_visits_patient"] = data.groupby("patient_id")["age"].transform("count")
     data["visit_ratio"] = data["visit_number"] / data["n_visits_patient"]
+    min_age = data.groupby("patient_id")["age"].transform("min")
+    data["time_since_first_visit"] = data["age"] - min_age
 
-    # 2. Pharmacodynamie Levodopa de Bateman
+    # 2. Pharmacodynamie Levodopa (Courbe de Bateman)
     t_on = data["time_since_intake_on"].fillna(2.5).clip(lower=0.0)
-    data["bateman_on"] = BATEMAN_A * (np.exp(-BATEMAN_KE * t_on) - np.exp(-BATEMAN_KA * t_on))
-    data["on_adjusted"] = data["on"] + data["bateman_on"]
+    data["bateman_effect_on"] = BATEMAN_A * (np.exp(-BATEMAN_KE * t_on) - np.exp(-BATEMAN_KA * t_on))
+    data["on_adjusted"] = data["on"] + data["bateman_effect_on"]
     data["surrogate"] = data["off"].fillna(data["on_adjusted"])
 
-    # 3. Statistiques standards par patient
+    # 3. Statistiques de base par patient
     data["mean_off_patient"] = data.groupby("patient_id")["off"].transform("mean")
     data["mean_on_patient"] = data.groupby("patient_id")["on"].transform("mean")
     data["mean_surrogate_patient"] = data.groupby("patient_id")["surrogate"].transform("mean")
@@ -67,42 +77,19 @@ def prepare_lovo_features(df: pd.DataFrame) -> pd.DataFrame:
     data["std_on_patient"] = data.groupby("patient_id")["on"].transform("std")
     data["mean_ledd_patient"] = data.groupby("patient_id")["ledd"].transform("mean")
 
-    # 4. Trajectoires Leave-One-Visit-Out (LOVO) par patient
-    def _compute_patient_lovo(g: pd.DataFrame) -> pd.DataFrame:
-        ages = g["age"].values
-        surrs = g["surrogate"].values
-        n = len(ages)
+    # 4. Trajectoires et interpolations par patient
+    def _compute_patient_trajectories(g: pd.DataFrame) -> pd.DataFrame:
+        x = g["age"].values
+        y_surr = g["surrogate"].values
 
-        lovo_means = np.empty(n)
-        lovo_slopes = np.empty(n)
-        lovo_preds = np.empty(n)
-
-        for i in range(n):
-            mask = np.ones(n, dtype=bool)
-            mask[i] = False
-            a = ages[mask]
-            s = surrs[mask]
-            lovo_means[i] = np.mean(s)
-            if len(a) >= 2:
-                da = a - np.mean(a)
-                ds = s - np.mean(s)
-                var_a = np.sum(da**2)
-                if var_a > 1e-6:
-                    slope = np.sum(da * ds) / var_a
-                    intercept = np.mean(s) - slope * np.mean(a)
-                else:
-                    slope = 2.47
-                    intercept = np.mean(s) - 2.47 * np.mean(a)
-                lovo_slopes[i] = slope
-                lovo_preds[i] = slope * ages[i] + intercept
-            else:
-                lovo_slopes[i] = 2.47
-                lovo_preds[i] = s[0]
-
-        g["lovo_mean_surrogate"] = lovo_means
-        g["lovo_trajectory_slope"] = lovo_slopes
-        g["lovo_trajectory_pred"] = lovo_preds
-        g["diff_from_lovo_pred"] = g["surrogate"] - lovo_preds
+        # Pente et projection lineaire de la progression
+        if len(x) >= 2:
+            poly = np.polyfit(x, y_surr, 1)
+            g["patient_slope"] = poly[0]
+            g["patient_linear_surrogate"] = poly[0] * x + poly[1]
+        else:
+            g["patient_slope"] = 2.47
+            g["patient_linear_surrogate"] = y_surr[0]
 
         # Interpolation de off selon l'age
         val_off = g["off"].notnull()
@@ -114,47 +101,56 @@ def prepare_lovo_features(df: pd.DataFrame) -> pd.DataFrame:
         else:
             g["off_age_interp"] = np.nan
 
+        # Interpolation de on selon l'age
+        val_on = g["on"].notnull()
+        n_on = val_on.sum()
+        if n_on >= 2:
+            g["on_age_interp"] = np.interp(g["age"], g.loc[val_on, "age"], g.loc[val_on, "on"])
+        elif n_on == 1:
+            g["on_age_interp"] = g.loc[val_on, "on"].iloc[0]
+        else:
+            g["on_age_interp"] = np.nan
+
         # Lags sequentiels
         g["off_prev"] = g["off"].ffill().shift(1)
         g["off_next"] = g["off"].bfill().shift(-1)
         return g
 
-    processed = data.groupby("patient_id", group_keys=False).apply(_compute_patient_lovo, include_groups=False)
-    for col in ["lovo_mean_surrogate", "lovo_trajectory_slope", "lovo_trajectory_pred", "diff_from_lovo_pred", "off_age_interp", "off_prev", "off_next"]:
+    processed = data.groupby("patient_id", group_keys=False).apply(_compute_patient_trajectories, include_groups=False)
+    for col in ["patient_slope", "patient_linear_surrogate", "off_age_interp", "on_age_interp", "off_prev", "off_next"]:
         data[col] = processed[col]
 
-    # 5. Ecarts et differences
+    # 5. Residus et ecarts a la trajectoire attendue
     data["off_minus_on"] = data["off"] - data["on"]
     data["diff_from_mean_off"] = data["off"] - data["mean_off_patient"]
     data["diff_from_mean_on"] = data["on"] - data["mean_on_patient"]
     data["diff_from_interp_off"] = data["off"] - data["off_age_interp"]
+    data["diff_from_interp_on"] = data["on"] - data["on_age_interp"]
+    data["diff_from_linear_surrogate"] = data["surrogate"] - data["patient_linear_surrogate"]
 
-    # 6. Typage categoriel de rater_id
-    data["rater_id"] = data["rater_id"].astype("category")
+    # 6. Typage categoriel
+    for col in ["cohort", "gene", "rater_id"]:
+        if col in data.columns:
+            data[col] = data[col].astype("category")
 
-    # 7. Remise en ordre conforme a l'index initial et exclusion des colonnes parasites (SKD012/SKD008)
+    # 7. Remise en ordre conforme a l'index initial et exclusion des identifiants
     data = data.loc[orig_index]
-    drop_cols = [
-        c for c in [
-            "Index", "patient_id", "target", "cohort", "gene", "sexM",
-            "time_since_first_visit", "time_since_intake_off"
-        ] if c in data.columns
-    ]
+    drop_cols = [c for c in ["Index", "patient_id", "target"] if c in data.columns]
     return data.drop(columns=drop_cols)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Modele HGBR LOVO Trajectories (12_lovo)")
+    parser = argparse.ArgumentParser(description="Modele HGBR longitudinal et pharmacodynamique (09_longitudinal)")
     parser.add_argument("--no-hub", action="store_true", help="Ne pas publier sur Skore Hub")
     args = parser.parse_args()
 
     print("=" * 70, flush=True)
-    print("MODELE HGBR AVEC TRAJECTOIRES LOVO (12_lovo)", flush=True)
-    print("Sous-tache 10 - Leave-One-Visit-Out sans fuite intra-patient", flush=True)
+    print("MODELE HGBR LONGITUDINAL & PHARMACODYNAMIQUE (09_longitudinal)", flush=True)
+    print("Sous-tache 7 - Reconstruction de trajectoire et cinetique Bateman", flush=True)
     print("=" * 70, flush=True)
 
-    # 1. Chargement et preparation des donnees
-    print("\n[1/5] Chargement et extraction des features LOVO...", flush=True)
+    # 1. Chargement des donnees
+    print("\n[1/5] Chargement des donnees et extraction des caracteristiques...", flush=True)
     X_train_raw = pd.read_csv(DATA_DIR / "X_train.csv")
     y_train_raw = pd.read_csv(DATA_DIR / "y_train.csv")
     X_test_raw = pd.read_csv(DATA_DIR / "X_test.csv")
@@ -163,8 +159,8 @@ def main() -> None:
     patient_ids = visits["patient_id"]
     y = visits["target"]
 
-    X = prepare_lovo_features(visits)
-    X_test = prepare_lovo_features(X_test_raw)
+    X = prepare_longitudinal_features(visits)
+    X_test = prepare_longitudinal_features(X_test_raw)
 
     print(f"  Shape X: {X.shape}, Shape X_test: {X_test.shape}", flush=True)
     print(f"  Nombre de variables : {X.shape[1]}", flush=True)
@@ -175,14 +171,14 @@ def main() -> None:
     cv_splits = list(cv_grouped.split(X, y, groups=patient_ids))
 
     # 3. Pipeline et evaluation skore
-    print("\n[3/5] Evaluation skore.evaluate...", flush=True)
+    print("\n[3/5] Evaluation avec skore.evaluate...", flush=True)
     model = tabular_pipeline(
         HistGradientBoostingRegressor(
-            max_iter=400,
+            max_iter=500,
             learning_rate=0.03,
-            min_samples_leaf=15,
+            min_samples_leaf=10,
             max_leaf_nodes=31,
-            l2_regularization=1.5,
+            l2_regularization=1.0,
             random_state=42,
         )
     )
@@ -195,12 +191,6 @@ def main() -> None:
     except Exception as exc:
         print(f"  Rapport genere (erreur acces metrique: {exc})", flush=True)
 
-    try:
-        checks_summary = report.checks.summarize()
-        print(f"  Resume des controles Skore :\n{checks_summary}", flush=True)
-    except Exception as exc:
-        print(f"  Erreur controles: {exc}", flush=True)
-
     # 4. Entrainement final et generation de la soumission
     print("\n[4/5] Entrainement final sur tout le train et prediction sur X_test...", flush=True)
     model.fit(X, y)
@@ -208,7 +198,7 @@ def main() -> None:
     predictions = np.clip(raw_preds, 0.0, 132.0)
 
     SUBMISSIONS_DIR.mkdir(parents=True, exist_ok=True)
-    sub_path = SUBMISSIONS_DIR / "12_lovo.csv"
+    sub_path = SUBMISSIONS_DIR / "09_longitudinal.csv"
     submission_df = pd.DataFrame({"Index": X_test_raw["Index"], "target": predictions})
     submission_df.to_csv(sub_path, index=False)
     print(f"  Fichier de soumission genere : {sub_path} ({len(submission_df)} lignes)", flush=True)
