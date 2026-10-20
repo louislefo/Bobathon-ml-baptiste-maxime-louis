@@ -100,18 +100,12 @@ flowchart TD
 
 ---
 
-## 4. Repository Navigation
+## 4. Repository Structure
 
-- **[`Le_Forestier_Laurent_Noailhac_v2/`](Le_Forestier_Laurent_Noailhac_v2/)**: **Official Hackathon Delivery Folder** submitted for grading on DVL.
-  - [`Le_Forestier_Laurent_Noailhac_v2/README.md`](Le_Forestier_Laurent_Noailhac_v2/README.md): Master Evaluation Guide mapped to the rubric (50% Kaggle, 30% Docs, 20% Originality, 30% Video).
-  - [`Le_Forestier_Laurent_Noailhac_v2/DOCUMENTATION.md`](Le_Forestier_Laurent_Noailhac_v2/DOCUMENTATION.md): Complete mathematical and technical specification paper.
-  - [`Le_Forestier_Laurent_Noailhac_v2/model_34_bayes_stack.py`](Le_Forestier_Laurent_Noailhac_v2/model_34_bayes_stack.py): Self-contained executable champion script.
-  - [`Le_Forestier_Laurent_Noailhac_v2/video/`](Le_Forestier_Laurent_Noailhac_v2/video/): Dedicated video submission directory.
-  - [`Le_Forestier_Laurent_Noailhac_v2/submissions/`](Le_Forestier_Laurent_Noailhac_v2/submissions/): Verified Kaggle submission CSV file (`34_bayes_stack.csv`).
-- **[`website/`](website/)**: **Public Documentation Website** (Docusaurus) deployed to GitHub Pages.
-- **[`src/`](src/)**: Full development progression of all 34 model iterations.
+- **[`src/`](src/)**: Refined source code containing the top-performing models, including the champion model [`src/model_34_bayes_stack.py`](src/model_34_bayes_stack.py).
+- **[`parkinson/`](parkinson/)**: Hub authentication and environment tracking helpers.
+- **[`website/`](website/)**: Public documentation website (Docusaurus) deployed to GitHub Pages.
 - **[`docs/`](docs/)**: Workshop reference guides (`DAY1.md`, `DAY2.md`, `CONTEXT.md`, `SETUP.md`).
-- **[`submissions/`](submissions/)**: Complete archive of generated Kaggle submission CSVs.
 
 ---
 
@@ -121,12 +115,12 @@ flowchart TD
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install -r Le_Forestier_Laurent_Noailhac_v2/requirements.txt
+pip install -r requirements.txt
 ```
 
 ### Running the Champion Model
 ```bash
-python Le_Forestier_Laurent_Noailhac_v2/model_34_bayes_stack.py
+python src/model_34_bayes_stack.py
 ```
 
 Available CLI Options:
