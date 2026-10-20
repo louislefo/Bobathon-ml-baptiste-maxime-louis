@@ -148,7 +148,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Projet Hackathon ML - Baptiste, Maxime, Louis | ESILV x Probabl x IBM`,
+        copyright: `Projet Hackathon ML - Louis Le Forestier, Maxime Laurent, Baptiste Noailhac | ESILV x Probabl x IBM`,
       },
       prism: {
         theme: prismThemes.github,

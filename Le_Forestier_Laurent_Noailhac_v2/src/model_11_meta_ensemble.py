@@ -1,19 +1,18 @@
-"""Weighted meta-ensemble combining regularized LOVO HGBR and Ridge (14_lovo_ensemble).
+"""Weighted meta-ensemble combining diverse HGBR regressors and linear Ridge (11_meta_ensemble).
 
-Sub-task: Meta-ensemble hybride LOVO multi-graines et lineaire (Sous-tache 12)
+Sub-task: Meta-ensemble hybride arbre + lineaire (Sous-tache 9)
 Project: Bobathon ESILV (Probabl x IBM)
 
 Strategie :
-1. Exploite l'ensemble des variables LOVO (Leave-One-Visit-Out) de 12_lovo.
+1. Exploite toutes les 37 variables longitudinales et PKPD de 09_longitudinal.
 2. Combine par VotingRegressor pondere :
-   - 4 modeles HistGradientBoostingRegressor avec graines variees (0, 42, 123, 456),
-     regularisation L2 renforcee et arret precoce (poids 0.22 chacun).
-   - 1 modele Ridge lineaire fortement regularise (alpha=100.0, poids 0.12).
-3. Reduit la variance stochastique a son minimum tout en preservant une stricte
-   absence de surapprentissage entre entrainement et validation.
+   - 4 modeles HistGradientBoostingRegressor (graines 0, 42, 123, 456, architectures variees, poids 0.22 chacun)
+   - 1 modele Ridge regularise (alpha=50.0 via tabular_pipeline, poids 0.12)
+3. L'ajout du signal lineaire Ridge etend la portee des arbres pour les scores moteurs extremes
+   (au-dela de 90 points) tout en preservant la precision intra-patient du gradient boosting.
 4. Evaluation avec skore.evaluate sur GroupKFold (5 plis groupes par patient_id).
-5. Generation de submissions/14_lovo_ensemble.csv avec bornage strict [0.0, 132.0].
-6. Publication du rapport sur Skore Hub sous la cle '14_lovo_ensemble'.
+5. Entrainement final et generation de submissions/11_meta_ensemble.csv avec bornage strict [0.0, 132.0].
+6. Publication du rapport sur Skore Hub sous la cle '11_meta_ensemble'.
 """
 
 from __future__ import annotations
@@ -32,85 +31,73 @@ from skore import Project, evaluate, login
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = REPO_ROOT / "data"
 SUBMISSIONS_DIR = REPO_ROOT / "submissions"
-HUB_KEY = "14_lovo_ensemble"
+HUB_KEY = "11_meta_ensemble"
 
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from parkinson.hub import load_skore_credentials
-from src.model_12_lovo import prepare_lovo_features
+from src.model_09_longitudinal import prepare_longitudinal_features
 
 
-def build_lovo_ensemble() -> VotingRegressor:
-    """Construit le VotingRegressor combinant des HGBR LOVO regularises et Ridge."""
+def build_meta_ensemble() -> VotingRegressor:
+    """Construit un VotingRegressor pondere alliant HGBR et Ridge."""
     estimators = [
         (
-            "lovo_hgbr_0",
+            "hgbr_seed_0",
             tabular_pipeline(
                 HistGradientBoostingRegressor(
                     random_state=0,
-                    max_iter=350,
-                    learning_rate=0.035,
-                    min_samples_leaf=25,
-                    max_leaf_nodes=25,
-                    l2_regularization=4.0,
-                    early_stopping=True,
-                    validation_fraction=0.1,
-                    n_iter_no_change=25,
+                    max_iter=500,
+                    learning_rate=0.030,
+                    min_samples_leaf=10,
+                    max_leaf_nodes=31,
+                    l2_regularization=1.0,
                 )
             ),
         ),
         (
-            "lovo_hgbr_42",
+            "hgbr_seed_42",
             tabular_pipeline(
                 HistGradientBoostingRegressor(
                     random_state=42,
-                    max_iter=350,
-                    learning_rate=0.035,
-                    min_samples_leaf=25,
-                    max_leaf_nodes=25,
-                    l2_regularization=4.0,
-                    early_stopping=True,
-                    validation_fraction=0.1,
-                    n_iter_no_change=25,
+                    max_iter=500,
+                    learning_rate=0.030,
+                    min_samples_leaf=10,
+                    max_leaf_nodes=31,
+                    l2_regularization=1.0,
                 )
             ),
         ),
         (
-            "lovo_hgbr_123",
+            "hgbr_seed_123",
             tabular_pipeline(
                 HistGradientBoostingRegressor(
                     random_state=123,
-                    max_iter=400,
-                    learning_rate=0.030,
-                    min_samples_leaf=30,
-                    max_leaf_nodes=30,
-                    l2_regularization=5.0,
-                    early_stopping=True,
-                    validation_fraction=0.1,
-                    n_iter_no_change=25,
+                    max_iter=600,
+                    learning_rate=0.025,
+                    min_samples_leaf=15,
+                    max_leaf_nodes=45,
+                    l2_regularization=1.5,
                 )
             ),
         ),
         (
-            "lovo_hgbr_456",
+            "hgbr_seed_456",
             tabular_pipeline(
                 HistGradientBoostingRegressor(
                     random_state=456,
-                    max_iter=300,
-                    learning_rate=0.040,
-                    min_samples_leaf=20,
-                    max_leaf_nodes=20,
-                    l2_regularization=3.0,
-                    early_stopping=True,
-                    validation_fraction=0.1,
-                    n_iter_no_change=25,
+                    max_iter=450,
+                    learning_rate=0.035,
+                    min_samples_leaf=8,
+                    max_leaf_nodes=25,
+                    l2_regularization=0.5,
                 )
             ),
         ),
         (
-            "lovo_ridge",
-            tabular_pipeline(Ridge(alpha=100.0)),
+            "ridge_linear",
+            tabular_pipeline(Ridge(alpha=50.0)),
         ),
     ]
 
@@ -119,17 +106,17 @@ def build_lovo_ensemble() -> VotingRegressor:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Meta-ensemble hybride LOVO (14_lovo_ensemble)")
+    parser = argparse.ArgumentParser(description="Meta-ensemble pondere HGBR + Ridge (11_meta_ensemble)")
     parser.add_argument("--no-hub", action="store_true", help="Ne pas publier sur Skore Hub")
     args = parser.parse_args()
 
     print("=" * 70, flush=True)
-    print("META-ENSEMBLE HYBRIDE LOVO + RIDGE (14_lovo_ensemble)", flush=True)
-    print("Sous-tache 12 - Assemblage multi-graines et lineaire sans surapprentissage", flush=True)
+    print("META-ENSEMBLE HYBRIDE HGBR + RIDGE (11_meta_ensemble)", flush=True)
+    print("Sous-tache 9 - Assemblage pondere multi-architectures sur variables 09", flush=True)
     print("=" * 70, flush=True)
 
-    # 1. Chargement et extraction des variables LOVO
-    print("\n[1/5] Chargement et extraction des variables LOVO...", flush=True)
+    # 1. Chargement et extraction des variables
+    print("\n[1/5] Chargement et extraction des variables longitudinales...", flush=True)
     X_train_raw = pd.read_csv(DATA_DIR / "X_train.csv")
     y_train_raw = pd.read_csv(DATA_DIR / "y_train.csv")
     X_test_raw = pd.read_csv(DATA_DIR / "X_test.csv")
@@ -138,8 +125,8 @@ def main() -> None:
     patient_ids = visits["patient_id"]
     y = visits["target"]
 
-    X = prepare_lovo_features(visits)
-    X_test = prepare_lovo_features(X_test_raw)
+    X = prepare_longitudinal_features(visits)
+    X_test = prepare_longitudinal_features(X_test_raw)
 
     print(f"  Shape X: {X.shape}, Shape X_test: {X_test.shape}", flush=True)
     print(f"  Nombre de variables : {X.shape[1]}", flush=True)
@@ -150,8 +137,8 @@ def main() -> None:
     cv_splits = list(cv_grouped.split(X, y, groups=patient_ids))
 
     # 3. Evaluation skore
-    print("\n[3/5] Evaluation du meta-ensemble LOVO avec skore.evaluate...", flush=True)
-    ensemble = build_lovo_ensemble()
+    print("\n[3/5] Evaluation du meta-ensemble avec skore.evaluate...", flush=True)
+    ensemble = build_meta_ensemble()
     report = evaluate(ensemble, X, y, splitter=cv_splits)
 
     try:
@@ -160,12 +147,6 @@ def main() -> None:
     except Exception as exc:
         print(f"  Rapport genere (erreur acces metrique: {exc})", flush=True)
 
-    try:
-        checks_summary = report.checks.summarize()
-        print(f"  Resume des controles Skore :\n{checks_summary}", flush=True)
-    except Exception as exc:
-        print(f"  Erreur controles: {exc}", flush=True)
-
     # 4. Entrainement final et generation de la soumission
     print("\n[4/5] Entrainement final de l'ensemble et prediction sur X_test...", flush=True)
     ensemble.fit(X, y)
@@ -173,7 +154,7 @@ def main() -> None:
     predictions = np.clip(raw_preds, 0.0, 132.0)
 
     SUBMISSIONS_DIR.mkdir(parents=True, exist_ok=True)
-    sub_path = SUBMISSIONS_DIR / "14_lovo_ensemble.csv"
+    sub_path = SUBMISSIONS_DIR / "11_meta_ensemble.csv"
     submission_df = pd.DataFrame({"Index": X_test_raw["Index"], "target": predictions})
     submission_df.to_csv(sub_path, index=False)
     print(f"  Fichier de soumission genere : {sub_path} ({len(submission_df)} lignes)", flush=True)

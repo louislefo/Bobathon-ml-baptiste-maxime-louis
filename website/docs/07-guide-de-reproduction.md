@@ -41,56 +41,77 @@ La suite de tests doit afficher `all passed`. Elle certifie la validite de la st
 
 ## Etape 2 : Entrainement et Generation des Soumissions
 
-Chaque modele dispose d'un script dedie dans le dossier [`src/`](file:///c:/Users/louis/OneDrive/Desktop/Esilv/A4/Machine%20Learning/Hackathon/bobathon-esilv/src).
+Chaque modele dispose d'un script dedie dans le dossier `src/` ou directement dans le dossier d'evaluation `rendu/`.
 
-### 1. Baseline Moyenne Naive (`01_dummy`)
+### 1. Modele Champion : Stacking Bayesien Adaptatif (`34_bayes_stack`)
+
+Pour executer le modele champion complet (validation sur holdout patient 20%, generation des features bayesiennes OOF, entrainement sur 100% des donnees et export de la soumission finale) :
+
+```bash
+python rendu/model_34_bayes_stack.py
+```
+- Genere : `rendu/submissions/34_bayes_stack.csv` (11 013 lignes au format `Index,target`).
+- Metriques evaluees : RMSE globale ~3.38.
+- Publication automatique sur Skore Hub sous la cle `34_bayes_stack`.
+
+#### Options d'execution disponibles :
+- **Mode hors-ligne** (sans communication avec Skore Hub) :
+  ```bash
+  python rendu/model_34_bayes_stack.py --no-hub
+  ```
+- **Mode calibration rapide** (recherche sur grille de poids sans re-entrainement final) :
+  ```bash
+  python rendu/model_34_bayes_stack.py --quick
+  ```
+- **Mode rapport seul** (evaluation et export du rapport `.joblib` sans soumission CSV) :
+  ```bash
+  python rendu/model_34_bayes_stack.py --report-only
+  ```
+- **Poids de melange personnalises** :
+  ```bash
+  python rendu/model_34_bayes_stack.py --w-ca 0.30 --w-cb 0.40 --w-c1 0.10 --w-c2 0.20
+  ```
+
+---
+
+### 2. Modeles de Reference et Jalons Historiques
+
+Pour reproduire les etapes incrementales precedentes :
+
+#### Baseline Moyenne Naive (`01_dummy`)
 ```bash
 python src/baseline_dummy.py
 ```
-- Genere : `submissions/01_dummy.csv` (11 013 lignes)
-- Pousse le rapport sur Skore Hub sous la cle `01_dummy`.
+- Genere : `submissions/01_dummy.csv` (RMSE 16.48).
 
-### 2. Regression Ridge Linéaire (`02_ridge`)
+#### Regression Ridge Linéaire (`02_ridge`)
 ```bash
 python src/model_ridge.py
 ```
-- Genere : `submissions/02_ridge.csv`
-- Publication Hub : cle `02_ridge`.
+- Genere : `submissions/02_ridge.csv` (RMSE 10.49).
 
-### 3. HistGradientBoosting avec tabular_pipeline (`03_hgbr`)
+#### HistGradientBoosting avec tabular_pipeline (`03_hgbr`)
 ```bash
 python src/model_hgbr.py
 ```
-- Genere : `submissions/03_hgbr.csv`
-- Publication Hub : cle `03_hgbr`.
+- Genere : `submissions/03_hgbr.csv` (RMSE 7.45).
 
-### 4. Modele avec Feature Engineering Temporel (`04_features`)
-```bash
-python src/model_04_features.py
-```
-- Genere : `submissions/04_features.csv`
-- Publication Hub : cle `04_features`.
-
-### 5. Modele avec Biais Clinique (`05_rater`)
-```bash
-python src/model_05_rater.py
-```
-- Genere : `submissions/05_rater.csv`
-- Publication Hub : cle `05_rater`.
-
-### 6. Ensemble Stacking Ridge + HGBR (`07_ensemble`)
+#### Ensemble Stacking Ridge + HGBR (`07_ensemble`)
 ```bash
 python src/model_07_ensemble.py
 ```
-- Genere : `submissions/07_ensemble.csv`
-- Publication Hub : cle `07_ensemble`.
+- Genere : `submissions/07_ensemble.csv` (RMSE 4.80).
 
-:::tip Mode Hors-Ligne
-Pour executer les modeles sans envoyer de rapport sur Skore Hub (ex. en local sans connexion), ajoutez le drapeau `--no-hub` :
+#### Trajectoires Longitudinales et Pharmacodynamie (`09_longitudinal` & `15_trajectory`)
 ```bash
-python src/model_07_ensemble.py --no-hub
+python src/model_09_longitudinal.py
+python src/model_15_trajectory.py
 ```
-:::
+
+#### Socle Multi-Etages (`32_ultimate`)
+```bash
+python src/model_32_ultimate.py
+```
 
 ---
 
@@ -98,7 +119,7 @@ python src/model_07_ensemble.py --no-hub
 
 1. Rendez-vous sur la page officielle [Kaggle Bobathon ESILV](https://www.kaggle.com/competitions/bobathon-esilv/).
 2. Cliquez sur **Submit Predictions**.
-3. Selectionnez le fichier genere, par exemple `submissions/07_ensemble.csv`.
-4. Dans le champ **Description**, collez obligatoirement l'URL affichee par skore lors de l'execution :
+3. Selectionnez le fichier de soumission du modele champion : `submissions/34_bayes_stack.csv`.
+4. Dans le champ **Description**, collez obligatoirement l'URL du rapport generee sur Skore Hub :
    `https://skore.probabl.ai/workspace/estimations/...`
-5. Validez le depot et suivez l'evolution de votre score sur le leaderboard public.
+5. Validez le depot et verifiez la conformite de votre score sur le leaderboard public.
